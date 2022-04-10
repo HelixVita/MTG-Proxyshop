@@ -1,4 +1,5 @@
 foobarbaz
+green eggs ham
 # Proxyshop
 Photoshop scripting to generate high-quality Magic card renders, original concept developed by Chilli-Axe, rewritten in Python for extended functionality. If you need help with this app, join our discord: https://discord.gg/qdR2S4nQ6U
 
