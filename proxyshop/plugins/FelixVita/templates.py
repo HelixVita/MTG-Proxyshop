@@ -12,16 +12,16 @@ import proxyshop.helpers as psd
 import photoshop.api as ps
 app = ps.Application()
 
-class RetroTemplate (temp.NormalClassicTemplate):
+class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
     """
      * Notes about my template here
      * Created by FelixVita
     """
     def template_file_name (self):
-        return "FelixVita/retro"
+        return "FelixVita/retro-1997"
 
     def template_suffix (self):
-        return "Retro"
+        return "Retro-1997"
 
     # OPTIONAL
     def __init__ (self, layout, file):
