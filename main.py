@@ -136,6 +136,33 @@ class ProxyshopApp(App):
 		for ext in extensions:
 			files.extend(glob(os.path.join(folder, ext)))
 
+		# FelixVita - Also get art from other location(s)
+		other_art_folders = [
+			# os.path.join(cwd, "art"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\xinntao\\Real-ESRGAN\\results-godkjent"),
+			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\markus-16-apr-2022-scryfall")
+		]
+		from pathlib import Path
+		for artdir in other_art_folders:
+			subfolders = os.listdir(artdir)
+			for subfolder in subfolders:
+				Path(os.path.join(cwd, "out", subfolder)).mkdir(mode=511, parents=True, exist_ok=True)  # Create subfolder in "out" folder
+
+			extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
+			for ext in extensions:
+				files.extend(glob(os.path.join(artdir,"**", ext)))
+
+		# # FelixVita - Subfolders to skip
+		# numbers = '1'
+		# files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
+
+		# FelixVita - Don't re-render already rendered cards
+		rerender_all = False
+		already_rendered_cards = [Path(_).name for _ in glob(os.path.join(cwd,"out", "**\*"))]
+		if not rerender_all: files = [_ for _ in files if Path(_).name not in already_rendered_cards]
+
 		# Run through each file
 		for f in files:
 			start_t = perf_counter()

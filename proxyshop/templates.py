@@ -2,6 +2,7 @@
 CORE TEMPLATES
 """
 import os
+from pathlib import Path
 import proxyshop.text_layers as txt_layers
 from proxyshop import format_text, gui
 import proxyshop.constants as con
@@ -185,6 +186,13 @@ class BaseTemplate():
         suffix = self.template_suffix()
         if suffix: file_name = f"{self.layout.name} ({suffix})"
         else: file_name = self.layout.name
+
+        # FelixVita
+        original_file_path = Path(self.file)
+        original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
+        suffix_enabled = False
+        file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
+        file_name = f"{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"
 
         # Exit early defined?
         try: self.exit_early
