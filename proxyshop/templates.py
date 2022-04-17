@@ -264,7 +264,8 @@ class StarterTemplate (BaseTemplate):
         except: pass
 
         mana_cost = psd.getLayer(con.layers['MANA_COST'], text_and_icons)
-        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], text_and_icons)
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
+        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
         try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
         except: expansion_reference = None
         self.tx_layers.extend([
