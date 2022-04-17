@@ -107,6 +107,11 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         symbol_stroke_size = cfg.cfg.symbol_stroke
         if self.setcode in sets_with_set_symbol_lacking_outer_stroke: symbol_stroke_size = 1
 
+        # Make RetroExpansionGroup the active layer
+        text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
+        app.activeDocument.activeLayer = retro_expansion_group
+
         # Symbol color
         if self.setcode in sets_with_set_symbol_lacking_outer_stroke: psd.apply_stroke(symbol_stroke_size, psd.rgb_black())
         elif self.rarity == con.rarity_common or self.is_pre_exodus or self.setcode in ["ICE"]: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -146,7 +151,8 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         # Overwrite the expansion symbol field text layer using custom class
         setcode = layout.set.upper()
         text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
-        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], text_and_icons)
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
+        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
         try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
         except: expansion_reference = None
         for i, layer in enumerate(self.tx_layers):
