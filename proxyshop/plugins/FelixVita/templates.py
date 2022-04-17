@@ -56,13 +56,18 @@ sets_with_hollow_set_symbol = [
 ]
 
 sets_with_set_symbol_lacking_outer_stroke = [
-    # TODO: Test all of these
+    # Only pre-exodus sets should go into this list, as putting a set into this list will result in no gold/silver/mythic color being applied to the set symbol.
     "VIS",
     "ARN", # Probably
     "LEG", # Probably
     "POR",
     "ICE",
+    "DRK",
+    "P02",
+    # "ATQ",
 ]
+
+all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
 con.set_symbol_library["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
@@ -99,18 +104,12 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         app.activeDocument.activeLayer = self.layer
 
         # Symbol stroke size (thickness)
-        if self.setcode is None: symbol_stroke_size = cfg.cfg.symbol_stroke
-        elif self.setcode in ["ICE", "DRK"]: symbol_stroke_size = 1
-        elif self.setcode in sets_with_set_symbol_lacking_outer_stroke: symbol_stroke_size = 1
-
-        # Symbol stroke color
-
-        # symbol_stroke_color = psd.rgb_black if self.symbol_stroke_size <= 1 else psd.rgb_white
+        symbol_stroke_size = cfg.cfg.symbol_stroke
+        if self.setcode in sets_with_set_symbol_lacking_outer_stroke: symbol_stroke_size = 1
 
         # Symbol color
-        if self.setcode in ["ICE"]: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
-        elif self.setcode in sets_with_set_symbol_lacking_outer_stroke: psd.apply_stroke(symbol_stroke_size, psd.rgb_black())
-        elif self.rarity == con.rarity_common or self.is_pre_exodus: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
+        if self.setcode in sets_with_set_symbol_lacking_outer_stroke: psd.apply_stroke(symbol_stroke_size, psd.rgb_black())
+        elif self.rarity == con.rarity_common or self.is_pre_exodus or self.setcode in ["ICE"]: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
         else:
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
@@ -169,6 +168,8 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         # Enable white border if scryfall says card border is white
         if self.layout.scryfall['border_color'] == 'white':
             psd.getLayer("WhiteBorder").visible = True
+            if self.layout.scryfall['colors'] == ["B"]:
+                psd.getLayer("Brighter Bevel (Left & Bottom)", "Nonland").visible = False
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
         if self.layout.set.upper() in sets_without_set_symbol:
             psd.getLayer("Expansion Symbol", "Text and Icons").visible = False
