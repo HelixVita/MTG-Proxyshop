@@ -178,5 +178,6 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                 psd.getLayer("Brighter Bevel (Left & Bottom)", "Nonland").visible = False
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
         if self.layout.set.upper() in sets_without_set_symbol:
-            psd.getLayer("Expansion Symbol", "Text and Icons").visible = False
+            text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+            psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
         super().enable_frame_layers()
