@@ -55,19 +55,19 @@ sets_with_hollow_set_symbol = [
     # POR
 ]
 
-sets_with_set_symbol_lacking_outer_stroke = [
+sets_lacking_symbol_stroke = [
+    # The result of putting a set here is that it will get a near-invisible 1-pixel thick BLACK stroke. (Because can't apply 0-px thick stroke.... WAIT A SEC, what about just not applying a stroke at all?)  # TODO: Finish writing this
     # Only pre-exodus sets should go into this list, as putting a set into this list will result in no gold/silver/mythic color being applied to the set symbol.
     "VIS",
     "ARN", # Probably
     "LEG", # Probably
     "POR",
-    "ICE",
-    "DRK",
+    "ICE", # Nope, because even a 1px black stroke is too much; it needs to be white.
     "P02",
     # "ATQ",
 ]
 
-all_keyrune_pre_eighth_symbols_for_debugging = ""
+all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
 con.set_symbol_library["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
@@ -105,17 +105,20 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Symbol stroke size (thickness)
         symbol_stroke_size = cfg.cfg.symbol_stroke
-        if self.setcode in sets_with_set_symbol_lacking_outer_stroke: symbol_stroke_size = 1
+        # Special cases
+        if self.setcode == "DRK": symbol_stroke_size = 2
+        elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
 
         # Make RetroExpansionGroup the active layer
         text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
         retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
         app.activeDocument.activeLayer = retro_expansion_group
 
-        # Symbol color
-        if self.setcode in sets_with_set_symbol_lacking_outer_stroke: psd.apply_stroke(symbol_stroke_size, psd.rgb_black())
-        elif self.rarity == con.rarity_common or self.is_pre_exodus or self.setcode in ["ICE"]: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
+        # Apply set symbol stroke (white/black) and rarity color (silver/gold/mythic)
+        if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
+        elif self.rarity == con.rarity_common or self.is_pre_exodus: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())  # Apply white stroke only
         else:
+            # Apply white stroke and rarity color
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
             psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -174,10 +177,27 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         # Enable white border if scryfall says card border is white
         if self.layout.scryfall['border_color'] == 'white':
             psd.getLayer("WhiteBorder").visible = True
+        elif self.layout.scryfall['border_color'] == 'black':
             if self.layout.scryfall['colors'] == ["B"]:
-                psd.getLayer("Brighter Bevel (Left & Bottom)", "Nonland").visible = False
+                psd.getLayer("Brighter Left & Bottom Frame Bevels", "Nonland").visible = True  # TODO: Fix this since it is probably what is causing "Oppression" to fail.
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
         if self.layout.set.upper() in sets_without_set_symbol:
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
+        if self.layout.set.upper() in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
+            psd.getLayer("B - DRK Brightness", "Nonland").visible = True
+            psd.getLayer("B - DRK Color Balance", "Nonland").visible = True
+        if "Flashback" in self.layout.keywords:
+            psd.getLayer("Tombstone").visible = True
         super().enable_frame_layers()
+        if self.is_land:
+            layer_set = psd.getLayerSet(con.layers['LAND'])
+            if self.set.upper() in ["LEA", "LEB", "2ED", "3ED"]:
+                # AND IF LAND IS DUAL LAND
+                selected_layer = self.layout.pinlines # DO STUFF
+            if self.set.upper() == "HML":
+                selected_layer = "Land - HML"  # And this is the name you give the HML land frame layer in your psd file.
+            if self.set.upper() == "LEG":
+                selected_layer = "Land - LEG"
+            # ^^^ Or something like that
+        psd.getLayer(selected_layer, layer_set).visible = True
