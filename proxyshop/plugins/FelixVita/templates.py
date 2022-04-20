@@ -67,6 +67,19 @@ sets_lacking_symbol_stroke = [
     # "ATQ",
 ]
 
+special_land_frames = {
+    "ARN": "Arabian Nights",
+    "ATQ": "Antiquities",
+    "LEG": "Legends",
+    "DRK": "The Dark",
+    "FEM": "Fallen Empires",
+    "ICE": "Ice Age",
+    "HML": "Homelands",
+    "ALL": "Alliances",
+    "MIR": "Mirage",
+    "VIS": "Visions",
+}
+
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
@@ -174,30 +187,44 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     )
 
     def enable_frame_layers (self):
+        # Variables
+        border_color = self.layout.scryfall['border_color']
+        setcode = self.layout.set.upper()
         # Enable white border if scryfall says card border is white
-        if self.layout.scryfall['border_color'] == 'white':
+        if border_color == 'white':
             psd.getLayer("WhiteBorder").visible = True
-        elif self.layout.scryfall['border_color'] == 'black':
+        elif border_color == 'black':
             if self.layout.scryfall['colors'] == ["B"]:
                 psd.getLayer("Brighter Left & Bottom Frame Bevels", "Nonland").visible = True  # TODO: Fix this since it is probably what is causing "Oppression" to fail.
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
-        if self.layout.set.upper() in sets_without_set_symbol:
+        if setcode in sets_without_set_symbol:
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
-        if self.layout.set.upper() in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
+        if setcode in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
             psd.getLayer("B - DRK Brightness", "Nonland").visible = True
             psd.getLayer("B - DRK Color Balance", "Nonland").visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
         super().enable_frame_layers()
         if self.is_land:
-            layer_set = psd.getLayerSet(con.layers['LAND'])
-            if self.set.upper() in ["LEA", "LEB", "2ED", "3ED"]:
-                # AND IF LAND IS DUAL LAND
-                selected_layer = self.layout.pinlines # DO STUFF
-            if self.set.upper() == "HML":
-                selected_layer = "Land - HML"  # And this is the name you give the HML land frame layer in your psd file.
-            if self.set.upper() == "LEG":
-                selected_layer = "Land - LEG"
-            # ^^^ Or something like that
-        psd.getLayer(selected_layer, layer_set).visible = True
+            pinlines = self.layout.pinlines
+            selected_layer = ""
+            if len(pinlines) == 2:
+                # Then it's a dual land
+                if setcode in ["LEA", "LEB", "2ED", "3ED"]:
+                    selected_layer = pinlines + " - ABUR"
+                elif setcode == "4ED":
+                    # TODO: Create 4ED frame in PSD template
+                    pass
+                elif setcode in "5ED":
+                    selected_layer = "Land"
+            elif setcode in ["5ED", "USG"] and len(pinlines) == 1:
+                selected_layer = pinlines + " FifthEdition-UrzasSaga"
+            elif setcode == "VIS" and len(pinlines) == 1:
+                selected_layer = pinlines + " Visions"
+            elif setcode in special_land_frames.keys():
+                selected_layer = "Land " + special_land_frames[setcode].replace(" ", "")
+                if setcode == "LEG": selected_layer += " (Clean)"
+            if selected_layer:
+                layer_set = psd.getLayerSet("Land-Special")
+                psd.getLayer(selected_layer, layer_set).visible = True
