@@ -239,10 +239,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         # Special land frames
         if self.is_land:
             land = con.layers['LAND']
-            selected_group = ""
             selected_abur_group = ""
-            selected_layer = ""
-            selected_layer_is_from_inner = None
             pinlines = self.layout.pinlines
             is_dual = len(pinlines) == 2
             is_mono = len(pinlines) == 1
