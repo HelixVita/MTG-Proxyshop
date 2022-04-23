@@ -64,7 +64,7 @@ sets_lacking_symbol_stroke = [
     "POR",
     "ICE", # Nope, because even a 1px black stroke is too much; it needs to be white.
     "P02",
-    # "ATQ",
+    "ATQ",
 ]
 
 special_land_frames = {
@@ -113,6 +113,26 @@ def unhide(psdpath: tuple, is_group=False):
     selection.visible = True
 
 
+def frame_expansion_symbol_customscale(layer, reference_layer, centered, scale_percent=100):
+    """
+     * Scale a layer equally to the bounds of a reference layer, then centre the layer vertically and horizontally
+     * within those bounds.
+    """
+    layer_dimensions = psd.compute_layer_dimensions(layer)
+    reference_dimensions = psd.compute_layer_dimensions(reference_layer)
+
+    # Determine how much to scale the layer by such that it fits into the reference layer's bounds
+    scale_factor = scale_percent * min(reference_dimensions['width'] / layer_dimensions['width'], reference_dimensions['height'] / layer_dimensions['height'])
+    layer.resize(scale_factor, scale_factor, ps.AnchorPosition.MiddleRight)
+
+    psd.select_layer_pixels(reference_layer)
+    app.activeDocument.activeLayer = layer
+
+    if centered: psd.align_horizontal()
+    psd.align_vertical()
+    psd.clear_selection()
+
+
 class RetroExpansionSymbolField (txt_layers.TextField):
     """
      * Created by FelixVita
@@ -140,8 +160,9 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            if self.centered: psd.frame_expansion_symbol(self.layer, self.reference, True)
-            else: psd.frame_expansion_symbol(self.layer, self.reference, False)
+            scale_percent = 70 if self.setcode == "ATQ" else 100
+            if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
+            else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
 
         # Symbol stroke size (thickness)
@@ -220,6 +241,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         border_color = self.layout.scryfall['border_color']
         setcode = self.layout.set.upper()
         cardname = self.layout.scryfall['name']
+        print(f"{cardname=}")
         # Enable white border if scryfall says card border is white
         if border_color == 'white':
             psd.getLayer("WhiteBorder").visible = True
@@ -245,6 +267,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             halves = "Halves for regular duals"
             uniques = "Uniques"
             pinlines = self.layout.pinlines
+            print(f"{pinlines=}")
             is_dual = len(pinlines) == 2
             is_mono = len(pinlines) == 1
             groups_to_unhide = []
@@ -253,12 +276,14 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             if setcode in special_land_frames.keys() and not (setcode == "VIS" and is_mono):
                 groups_to_unhide.append((uniques, land))
                 unique_frame = "Land " + special_land_frames[setcode].replace(" ", "")
+                if setcode == "VIS":
+                    unique_frame = unique_frame.replace("Visions", "Mirage")  # Use the MIR frame for colorless VIS lands.
                 if setcode in ["LEG", "4ED"]:
                     groups_to_unhide.append((unique_frame, uniques, land))
                 else:
                     layers_to_unhide.append((unique_frame, uniques, land))
 
-            if is_dual:
+            elif is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
                     groups_to_unhide.append((abur, land))
                     abur_combined_groups = ["WU, UB, UR", "GU, BG, RG, GW"]
