@@ -78,6 +78,7 @@ special_land_frames = {
     "ALL": "Alliances",
     "MIR": "Mirage",
     "VIS": "Visions",
+    "4ED": "Fourth Edition",
 }
 
 original_dual_lands = [
@@ -239,17 +240,26 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         # Special land frames
         if self.is_land:
             land = con.layers['LAND']
-            selected_abur_group = ""
+            abur = "ABUR Duals (ME4)"
+            wholes = "Wholes for regular duals and monocolors"
+            halves = "Halves for regular duals"
+            uniques = "Uniques"
             pinlines = self.layout.pinlines
             is_dual = len(pinlines) == 2
             is_mono = len(pinlines) == 1
-
             groups_to_unhide = []
             layers_to_unhide = []
 
+            if setcode in special_land_frames.keys() and not (setcode == "VIS" and is_mono):
+                groups_to_unhide.append((uniques, land))
+                unique_frame = "Land " + special_land_frames[setcode].replace(" ", "")
+                if setcode in ["LEG", "4ED"]:
+                    groups_to_unhide.append((unique_frame, uniques, land))
+                else:
+                    layers_to_unhide.append((unique_frame, uniques, land))
+
             if is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
-                    abur = "ABUR Duals (ME4)"
                     groups_to_unhide.append((abur, land))
                     abur_combined_groups = ["WU, UB, UR", "GU, BG, RG, GW"]
                     use_combined_group = None
@@ -269,20 +279,29 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                         groups_to_unhide.append((selected_abur_group, abur, land))
                         abur_second_color = "R" if pinlines in ["RW", "BR"] else "B"
                         layers_to_unhide.append((abur_second_color, abur, land))
+                else:
+                    groups_to_unhide.append((halves, land))
+                    left_half = pinlines[0] + "_"
+                    layers_to_unhide.append((left_half, halves, land))
+                    right_half = pinlines[1]
+                    layers_to_unhide.append((right_half, wholes, land))
+                    layers_to_unhide.append((land, wholes, land))
 
-            # elif setcode == "4ED":
-            #     # TODO: Create 4ED frame in PSD template
-            #     pass
+            elif is_mono:
+                if setcode == "VIS":
+                    groups_to_unhide.append((wholes, land))
+                    layers_to_unhide.append((pinlines, wholes, land))
+                    layers_to_unhide.append(("Land MIR-VIS", wholes, land))
+                    layers_to_unhide.append(("Trim MIR-VIS", wholes, land))
+                if setcode in ["5ED", "USG"]:
+                    groups_to_unhide.append((wholes, land))
+                    layers_to_unhide.append((pinlines, wholes, land))
+                    layers_to_unhide.append((land, wholes, land))
+                    layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
 
-            # elif setcode in "5ED":
-            #     selected_group, selected_layer = ("Land", "Land-Special")
-            # elif setcode in ["5ED", "USG"] and len(pinlines) == 1:
-            #     selected_layer = pinlines + " FifthEdition-UrzasSaga"
-            # elif setcode == "VIS" and is_mono:
-            #     selected_layer = pinlines + " Visions"
-            # elif setcode in special_land_frames.keys():
-            #     selected_layer = "Land " + special_land_frames[setcode].replace(" ", "")
-            #     if setcode == "LEG": selected_layer += " (Clean)"
+            else:
+                groups_to_unhide.append((wholes, land))
+                layers_to_unhide.append((land, wholes, land))
 
             # Figure out which group or layer to unhide
             for group in groups_to_unhide:
