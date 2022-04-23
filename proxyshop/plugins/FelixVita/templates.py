@@ -80,10 +80,37 @@ special_land_frames = {
     "VIS": "Visions",
 }
 
+original_dual_lands = [
+    "Tundra",
+    "Underground Sea",
+    "Badlands",
+    "Taiga",
+    "Savannah",
+    "Scrubland",
+    "Volcanic Island",
+    "Bayou",
+    "Plateau",
+    "Tropical Island",
+]
+
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
 con.set_symbol_library["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+
+
+def unhide(psdpath: tuple, is_group=False):
+    # Example: psdpath = ("RW", "ABUR Duals (ME4)", "Land")
+    revpath = list(reversed(psdpath))
+    # Example: revpath = ("Land", "ABUR Duals (ME4)", "RW")
+    selection = psd.getLayerSet(revpath[0])
+    psdpath_iter = revpath[1:] if is_group else revpath[1:-1]
+    for _ in psdpath_iter:
+        selection = psd.getLayerSet(_, selection)
+    if not is_group:
+        selection = psd.getLayer(revpath[-1], selection)
+    selection.visible = True
+
 
 class RetroExpansionSymbolField (txt_layers.TextField):
     """
@@ -186,10 +213,12 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                         setcode = setcode
                     )
 
+
     def enable_frame_layers (self):
         # Variables
         border_color = self.layout.scryfall['border_color']
         setcode = self.layout.set.upper()
+        cardname = self.layout.scryfall['name']
         # Enable white border if scryfall says card border is white
         if border_color == 'white':
             psd.getLayer("WhiteBorder").visible = True
@@ -206,58 +235,75 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
         super().enable_frame_layers()
+
         # Special land frames
         if self.is_land:
+            land = con.layers['LAND']
             selected_group = ""
-            selected_inner_group = ""
+            selected_abur_group = ""
             selected_layer = ""
             selected_layer_is_from_inner = None
             pinlines = self.layout.pinlines
             is_dual = len(pinlines) == 2
             is_mono = len(pinlines) == 1
+
+            groups_to_unhide = []
+            layers_to_unhide = []
+
             if is_dual:
-                if setcode in ["LEA", "LEB", "2ED", "3ED"]:
-                    selected_group = "ABUR Duals (ME4)"
-                    abur_inner_groups = [["WU", "UB", "UR"], ["GU", "BG", "RG", "GW"]]
-                    for igroup in abur_inner_groups:
-                        if pinlines in igroup:
-                            print('hello')
-                            selected_inner_group = ", ".join(igroup)
-                            print(selected_inner_group)
-                            abur_first_color = "".join(set.intersection(*map(set,igroup)))
-                            print(abur_first_color)
-                            abur_second_color = pinlines.replace(abur_first_color, "")
-                            print(abur_second_color)
-                            selected_layer = abur_second_color
-                            selected_layer_is_from_inner = False
+                if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
+                    abur = "ABUR Duals (ME4)"
+                    groups_to_unhide.append((abur, land))
+                    abur_combined_groups = ["WU, UB, UR", "GU, BG, RG, GW"]
+                    use_combined_group = None
+                    for abur_group in abur_combined_groups:
+                        pairs = abur_group.split(", ")
+                        if pinlines in pairs:
+                            use_combined_group = abur_group
                             break
-                        else:
-                            selected_inner_group = pinlines
-                            print("what")
-                elif setcode == "4ED":
-                    # TODO: Create 4ED frame in PSD template
-                    pass
-                elif setcode in "5ED":
-                    selected_group, selected_layer = ("Land", "Land-Special")
-            elif setcode in ["5ED", "USG"] and len(pinlines) == 1:
-                selected_layer = pinlines + " FifthEdition-UrzasSaga"
-            elif setcode == "VIS" and is_mono:
-                selected_layer = pinlines + " Visions"
-            elif setcode in special_land_frames.keys():
-                selected_layer = "Land " + special_land_frames[setcode].replace(" ", "")
-                if setcode == "LEG": selected_layer += " (Clean)"
+                    if use_combined_group:
+                        selected_abur_group = use_combined_group
+                        groups_to_unhide.append((selected_abur_group, abur, land))
+                        abur_first_color = "".join(set.intersection(*map(set, selected_abur_group.split(", "))))
+                        abur_second_color = pinlines.replace(abur_first_color, "")
+                        layers_to_unhide.append((abur_second_color, abur, land))
+                    else:
+                        selected_abur_group = pinlines
+                        groups_to_unhide.append((selected_abur_group, abur, land))
+                        abur_second_color = "R" if pinlines in ["RW", "BR"] else "B"
+                        layers_to_unhide.append((abur_second_color, abur, land))
+
+            # elif setcode == "4ED":
+            #     # TODO: Create 4ED frame in PSD template
+            #     pass
+
+            # elif setcode in "5ED":
+            #     selected_group, selected_layer = ("Land", "Land-Special")
+            # elif setcode in ["5ED", "USG"] and len(pinlines) == 1:
+            #     selected_layer = pinlines + " FifthEdition-UrzasSaga"
+            # elif setcode == "VIS" and is_mono:
+            #     selected_layer = pinlines + " Visions"
+            # elif setcode in special_land_frames.keys():
+            #     selected_layer = "Land " + special_land_frames[setcode].replace(" ", "")
+            #     if setcode == "LEG": selected_layer += " (Clean)"
+
             # Figure out which group or layer to unhide
-            if selected_group:
-                layer_set = psd.getLayerSet(selected_group, con.layers['LAND'])
-                if selected_inner_group:
-                    layer_set.visible = True
-                    layer_set = psd.getLayerSet(selected_inner_group, layer_set)
-                layer_set.visible = True
-            if selected_layer:
-                if selected_layer_is_from_inner:
-                    selected_layer = psd.getLayer(selected_layer, selected_inner_group)
-                elif selected_group:
-                    selected_layer = psd.getLayer(selected_layer, selected_group)
-                else:
-                    selected_layer = psd.getLayer(selected_layer)
-                selected_layer.visible = True
+            for group in groups_to_unhide:
+                unhide(group, is_group=True)
+            for layer in layers_to_unhide:
+                unhide(layer)
+
+            # if selected_group:
+            #     layer_set = psd.getLayerSet(selected_group, con.layers['LAND'])
+            #     if selected_inner_group:
+            #         layer_set.visible = True
+            #         layer_set = psd.getLayerSet(selected_inner_group, layer_set)
+            #     layer_set.visible = True
+            # if selected_layer:
+            #     if selected_layer_is_from_inner:
+            #         selected_layer = psd.getLayer(selected_layer, selected_inner_group)
+            #     elif selected_group:
+            #         selected_layer = psd.getLayer(selected_layer, selected_group)
+            #     else:
+            #         selected_layer = psd.getLayer(selected_layer)
+            #     selected_layer.visible = True
