@@ -206,25 +206,58 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
         super().enable_frame_layers()
+        # Special land frames
         if self.is_land:
-            pinlines = self.layout.pinlines
+            selected_group = ""
+            selected_inner_group = ""
             selected_layer = ""
-            if len(pinlines) == 2:
-                # Then it's a dual land
+            selected_layer_is_from_inner = None
+            pinlines = self.layout.pinlines
+            is_dual = len(pinlines) == 2
+            is_mono = len(pinlines) == 1
+            if is_dual:
                 if setcode in ["LEA", "LEB", "2ED", "3ED"]:
-                    selected_layer = pinlines + " - ABUR"
+                    selected_group = "ABUR Duals (ME4)"
+                    abur_inner_groups = [["WU", "UB", "UR"], ["GU", "BG", "RG", "GW"]]
+                    for igroup in abur_inner_groups:
+                        if pinlines in igroup:
+                            print('hello')
+                            selected_inner_group = ", ".join(igroup)
+                            print(selected_inner_group)
+                            abur_first_color = "".join(set.intersection(*map(set,igroup)))
+                            print(abur_first_color)
+                            abur_second_color = pinlines.replace(abur_first_color, "")
+                            print(abur_second_color)
+                            selected_layer = abur_second_color
+                            selected_layer_is_from_inner = False
+                            break
+                        else:
+                            selected_inner_group = pinlines
+                            print("what")
                 elif setcode == "4ED":
                     # TODO: Create 4ED frame in PSD template
                     pass
                 elif setcode in "5ED":
-                    selected_layer = "Land"
+                    selected_group, selected_layer = ("Land", "Land-Special")
             elif setcode in ["5ED", "USG"] and len(pinlines) == 1:
                 selected_layer = pinlines + " FifthEdition-UrzasSaga"
-            elif setcode == "VIS" and len(pinlines) == 1:
+            elif setcode == "VIS" and is_mono:
                 selected_layer = pinlines + " Visions"
             elif setcode in special_land_frames.keys():
                 selected_layer = "Land " + special_land_frames[setcode].replace(" ", "")
                 if setcode == "LEG": selected_layer += " (Clean)"
+            # Figure out which group or layer to unhide
+            if selected_group:
+                layer_set = psd.getLayerSet(selected_group, con.layers['LAND'])
+                if selected_inner_group:
+                    layer_set.visible = True
+                    layer_set = psd.getLayerSet(selected_inner_group, layer_set)
+                layer_set.visible = True
             if selected_layer:
-                layer_set = psd.getLayerSet("Land-Special")
-                psd.getLayer(selected_layer, layer_set).visible = True
+                if selected_layer_is_from_inner:
+                    selected_layer = psd.getLayer(selected_layer, selected_inner_group)
+                elif selected_group:
+                    selected_layer = psd.getLayer(selected_layer, selected_group)
+                else:
+                    selected_layer = psd.getLayer(selected_layer)
+                selected_layer.visible = True
