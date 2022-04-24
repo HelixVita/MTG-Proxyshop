@@ -160,7 +160,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            scale_percent = 70 if self.setcode == "ATQ" else 100
+            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
@@ -249,7 +249,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             if self.layout.scryfall['colors'] == ["B"]:
                 psd.getLayer("Brighter Left & Bottom Frame Bevels", "Nonland").visible = True  # TODO: Fix this since it is probably what is causing "Oppression" to fail.
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
-        if setcode in sets_without_set_symbol:
+        if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
         if setcode in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
@@ -266,7 +266,8 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             wholes = "Wholes for regular duals and monocolors"
             halves = "Halves for regular duals"
             uniques = "Uniques"
-            pinlines = self.layout.pinlines
+            thicker_trim = "Trim - Thicker Outer Black Stroke (2px)"
+            pinlines: str = self.layout.pinlines
             print(f"{pinlines=}")
             is_dual = len(pinlines) == 2
             is_mono = len(pinlines) == 1
@@ -274,14 +275,28 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             layers_to_unhide = []
 
             if setcode in special_land_frames.keys() and not (setcode == "VIS" and is_mono):
-                groups_to_unhide.append((uniques, land))
-                unique_frame = "Land " + special_land_frames[setcode].replace(" ", "")
-                if setcode == "VIS":
-                    unique_frame = unique_frame.replace("Visions", "Mirage")  # Use the MIR frame for colorless VIS lands.
-                if setcode in ["LEG", "4ED"]:
-                    groups_to_unhide.append((unique_frame, uniques, land))
+                if setcode in ["ARN", "ATQ", "ALL", "FEM", "DRK", "HML"]:
+                    layers_to_unhide.append((thicker_trim, land))
+                    groups_to_unhide.append((wholes, land))
+                    layers_to_unhide.append((land, wholes, land))
+                    groups_to_unhide.append((setcode + " - Color", wholes, land))
+                    if setcode in ["FEM", "ALL"]:
+                        groups_to_unhide.append(("Trim - " + setcode, land))
+                    if setcode == "ALL":
+                        layers_to_unhide(("Set Symbol - Alliances"))
                 else:
-                    layers_to_unhide.append((unique_frame, uniques, land))
+                    if setcode == "VIS":
+                        groups_to_unhide.append((wholes, land))
+                        groups_to_unhide.append(("Land - Visions", wholes, land))
+                        layers_to_unhide.append(("Rules Box - Inner - Mirage - NoText - Enhanced", wholes, land))
+                        # unique_frame = unique_frame.replace("Visions", "Mirage")  # Use the MIR frame for colorless VIS lands.
+                    else:
+                        groups_to_unhide.append((uniques, land))
+                        unique_frame = "Land " + special_land_frames[setcode].replace(" ", "")
+                        if setcode in ["LEG", "4ED"]:
+                            groups_to_unhide.append((unique_frame, uniques, land))
+                        else:
+                            layers_to_unhide.append((unique_frame, uniques, land))
 
             elif is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
@@ -311,21 +326,25 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     right_half = pinlines[1]
                     layers_to_unhide.append((right_half, wholes, land))
                     layers_to_unhide.append((land, wholes, land))
+                    layers_to_unhide.append((thicker_trim, land))
 
             elif is_mono:
                 if setcode == "VIS":
                     groups_to_unhide.append((wholes, land))
+                    layers_to_unhide.append((thicker_trim, land))
                     layers_to_unhide.append((pinlines, wholes, land))
-                    layers_to_unhide.append(("Land MIR-VIS", wholes, land))
-                    layers_to_unhide.append(("Trim MIR-VIS", wholes, land))
+                    layers_to_unhide.append(("Land - Visions", wholes, land))
                 if setcode in ["5ED", "USG"]:
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append((land, wholes, land))
                     layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
+                    layers_to_unhide.append(("W - Color Correction - 5ED-USG", wholes, land))
+                    layers_to_unhide.append((thicker_trim, land))
 
             else:
                 groups_to_unhide.append((wholes, land))
+                groups_to_unhide.append(("Land - Color", wholes, land))
                 layers_to_unhide.append((land, wholes, land))
 
             # Figure out which group or layer to unhide
