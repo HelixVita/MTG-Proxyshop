@@ -257,10 +257,12 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             psd.getLayer("B - DRK Color Balance", "Nonland").visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
-        super().enable_frame_layers()
-
-        # Special land frames
-        if self.is_land:
+        # super().enable_frame_layers()
+        if not self.is_land:
+            layer_set = psd.getLayerSet(con.layers['NONLAND'])
+            selected_layer = self.layout.background
+            psd.getLayer(selected_layer, layer_set).visible = True
+        elif self.is_land:
             land = con.layers['LAND']
             abur = "ABUR Duals (ME4)"
             wholes = "Wholes for regular duals and monocolors"
@@ -321,6 +323,8 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                         layers_to_unhide.append((abur_second_color, abur, land))
                 else:
                     groups_to_unhide.append((halves, land))
+                    groups_to_unhide.append((wholes, land))
+                    groups_to_unhide.append(("Land - Color", wholes, land))
                     left_half = pinlines[0] + "_"
                     layers_to_unhide.append((left_half, halves, land))
                     right_half = pinlines[1]
