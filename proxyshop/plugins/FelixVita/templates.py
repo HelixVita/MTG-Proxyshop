@@ -279,16 +279,20 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
 
             if setcode in special_land_frames.keys() and not (setcode == "VIS" and is_mono):
                 if setcode in ["ARN", "ATQ", "ALL", "FEM", "DRK", "HML"]:
+                    # Then use that set's unique frame
                     layers_to_unhide.append((thicker_trim_stroke, land))
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append((setcode + " - Color", wholes, land))
                     if setcode in ["FEM", "ALL"]:
+                        # Enable thick colored trim with no black strokes
                         groups_to_unhide.append(("Trim - " + setcode, land))
                     if setcode == "ALL":
+                        # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
                         layers_to_unhide(("Set Symbol - Alliances"))
                 else:
                     if setcode == "VIS":
+                        # Visions colorless lands -- Examples: Griffin Canyon (VIS)
                         groups_to_unhide.append((wholes, land))
                         groups_to_unhide.append(("Land - Visions", wholes, land))
                         layers_to_unhide.append(("Rules Box - Inner - Mirage - NoText - Enhanced", wholes, land))
@@ -303,6 +307,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
 
             elif is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
+                    # ABUR Duals (with the classic 'cascading squares' design in the rules box)
                     groups_to_unhide.append((abur, land))
                     abur_combined_groups = ["WU, UB, UR", "GU, BG, RG, GW"]
                     use_combined_group = None
@@ -323,6 +328,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                         abur_second_color = "R" if pinlines in ["RW", "BR"] else "B"
                         layers_to_unhide.append((abur_second_color, abur, land))
                 else:
+                    # Regular duals (vertically split half-n-half color) -- Examples: Adarkar Wastes (6ED)
                     groups_to_unhide.append((halves, land))
                     groups_to_unhide.append((wholes, land))
                     groups_to_unhide.append(("Land - Color", wholes, land))
@@ -335,11 +341,13 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
 
             elif is_mono:
                 if setcode == "VIS":
+                    # Visions monocolored lands -- Examples: Dormant Volcano (VIS)
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((thicker_trim_stroke, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append(("Land - Visions", wholes, land))
                 if setcode in ["5ED", "USG"]:
+                    # Monocolored lands with colored rules box and YELLOW TRIM -- Examples: Hollow Trees (5ED)
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append((land, wholes, land))
@@ -348,6 +356,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     layers_to_unhide.append((thickest_trim_stroke, land))
 
             else:
+                # Colorless lands (post-USG style) -- Examples: Crystal Quarry (ODY)
                 groups_to_unhide.append((wholes, land))
                 groups_to_unhide.append(("Land - Color", wholes, land))
                 layers_to_unhide.append((land, wholes, land))
