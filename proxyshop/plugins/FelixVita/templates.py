@@ -227,7 +227,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                 else:
                     self.tx_layers[i] = RetroExpansionSymbolField(
                         layer = expansion_symbol,
-                        text_contents = self.symbol_char,
+                        text_contents = self.layout.symbol,
                         rarity = self.layout.rarity,
                         reference = expansion_reference,
                         is_pre_exodus = setcode in pre_exodus_sets,
