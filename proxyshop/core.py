@@ -19,8 +19,16 @@ card_types = {
     "Transform": ["transform_front", "transform_back"],
     "Planeswalker": ["planeswalker"],
     "PW MDFC": ["pw_mdfc_front", "pw_mdfc_back"],
-    "PW Transform": ["pw_tf_front", "pw_tf_back"],
-    "Basic Land": ["basic"]
+    "PW TF": ["pw_tf_front", "pw_tf_back"],
+    "Basic Land": ["basic"],
+    "Ixalan": ["ixalan"],
+    "Mutate": ["mutate"],
+    "Adventure": ["adventure"],
+    "Leveler": ["leveler"],
+    "Saga": ["saga"],
+    "Miracle": ["miracle"],
+    "Snow": ["snow"],
+    "Planar": ["planar"]
 }
 
 
@@ -85,6 +93,9 @@ def get_templates():
                 if name == "template_map.json":
                     with open(os.path.join(cwd, f"proxyshop\\plugins\\{Path(folder).stem}\\{name}"), encoding="utf-8") as this_json:
                         j = json.load(this_json)
+
+                # Add to sys.path
+                sys.path.append(os.path.join(cwd, f"proxyshop/plugins/{Path(folder).stem}"))
 
             # Loop through keys in plugin json
             try:
