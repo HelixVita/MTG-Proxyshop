@@ -97,7 +97,7 @@ original_dual_lands = [
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
-con.set_symbol_library["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
 
 
 def unhide(psdpath: tuple, is_group=False):
