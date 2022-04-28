@@ -268,7 +268,8 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             wholes = "Wholes for regular duals and monocolors"
             halves = "Halves for regular duals"
             uniques = "Uniques"
-            thicker_trim = "Trim - Thicker Outer Black Stroke (2px)"
+            thicker_trim_stroke = "Trim - Thicker Outer Black Stroke (2px)"
+            thickest_trim_stroke = "Trim - Thickest Outer Black Stroke (3px)"
             pinlines: str = self.layout.pinlines
             print(f"{pinlines=}")
             is_dual = len(pinlines) == 2
@@ -278,7 +279,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
 
             if setcode in special_land_frames.keys() and not (setcode == "VIS" and is_mono):
                 if setcode in ["ARN", "ATQ", "ALL", "FEM", "DRK", "HML"]:
-                    layers_to_unhide.append((thicker_trim, land))
+                    layers_to_unhide.append((thicker_trim_stroke, land))
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append((setcode + " - Color", wholes, land))
@@ -330,12 +331,12 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     right_half = pinlines[1]
                     layers_to_unhide.append((right_half, wholes, land))
                     layers_to_unhide.append((land, wholes, land))
-                    layers_to_unhide.append((thicker_trim, land))
+                    layers_to_unhide.append((thicker_trim_stroke, land))
 
             elif is_mono:
                 if setcode == "VIS":
                     groups_to_unhide.append((wholes, land))
-                    layers_to_unhide.append((thicker_trim, land))
+                    layers_to_unhide.append((thicker_trim_stroke, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append(("Land - Visions", wholes, land))
                 if setcode in ["5ED", "USG"]:
@@ -344,12 +345,13 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     layers_to_unhide.append((land, wholes, land))
                     layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
                     layers_to_unhide.append(("W - Color Correction - 5ED-USG", wholes, land))
-                    layers_to_unhide.append((thicker_trim, land))
+                    layers_to_unhide.append((thickest_trim_stroke, land))
 
             else:
                 groups_to_unhide.append((wholes, land))
                 groups_to_unhide.append(("Land - Color", wholes, land))
                 layers_to_unhide.append((land, wholes, land))
+                layers_to_unhide.append((thickest_trim_stroke, land))
 
             # Figure out which group or layer to unhide
             for group in groups_to_unhide:
