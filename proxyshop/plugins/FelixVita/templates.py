@@ -346,14 +346,16 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     layers_to_unhide.append((thicker_trim_stroke, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append(("Land - Visions", wholes, land))
-                if setcode in ["5ED", "USG"]:
-                    # Monocolored lands with colored rules box and YELLOW TRIM -- Examples: Hollow Trees (5ED)
+                else:
+                    # Monocolored lands with colored rules box -- Examples: Rushwood Grove (MMQ), Spawning Pool (ULG)
                     groups_to_unhide.append((wholes, land))
                     layers_to_unhide.append((pinlines, wholes, land))
                     layers_to_unhide.append((land, wholes, land))
-                    layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
-                    layers_to_unhide.append(("W - Color Correction - 5ED-USG", wholes, land))
                     layers_to_unhide.append((thickest_trim_stroke, land))
+                    if setcode in ["5ED", "USG"]:
+                        # Monocolored lands with colored rules box and YELLOW TRIM -- Examples: Hollow Trees (5ED)
+                        layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
+                        layers_to_unhide.append(("W - Color Correction - 5ED-USG", wholes, land))
 
             else:
                 # Colorless lands (post-USG style) -- Examples: Crystal Quarry (ODY)
