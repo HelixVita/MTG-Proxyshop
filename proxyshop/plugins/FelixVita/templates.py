@@ -296,12 +296,12 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     # Mirage/Visions colorless lands -- Examples: Teferi's Isle (MIR), Griffin Canyon (VIS)
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append(("VIS - Color", wholes, land))
-                    layers_to_unhide.append((mirage_leafy_box, wholes, land))
-                    groups_to_unhide.append((thicker_bevels_rules_box, land))
+                    groups_to_unhide.append((thicker_bevels_rules_box, modifications, land))
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
                     if is_mono and setcode == "VIS":
                         # Visions monocolor lands -- Examples: Dormant Volcano (VIS)
                         groups_to_unhide.append((pinlines, wholes, land))
+                        layers_to_unhide.append(("Trim - VIS", modifications, land))
 
             elif is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
@@ -326,13 +326,13 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                         layers_to_unhide.append((abur_second_color, abur, land))
                 else:
                     # Regular duals (vertically split half-n-half color) -- Examples: Adarkar Wastes (6ED)
-                    left_half = pinlines[0] + "_"
+                    left_half = pinlines[0]
                     right_half = pinlines[1]
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append((neutral_land_frame_color, wholes, land))
                     groups_to_unhide.append((left_half, halves, land))
-                    layers_to_unhide.append((right_half, wholes, land))
-                    groups_to_unhide.append((thicker_bevels_rules_box, land))
+                    groups_to_unhide.append((right_half, wholes, land))
+                    groups_to_unhide.append((thicker_bevels_rules_box, modifications, land))
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
 
             elif is_mono:
@@ -340,7 +340,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append((neutral_land_frame_color, wholes, land))
                     groups_to_unhide.append((pinlines, wholes, land))
-                    groups_to_unhide.append((thicker_bevels_rules_box, land))
+                    groups_to_unhide.append((thicker_bevels_rules_box, modifications, land))
                     layers_to_unhide.append((thickest_trim_stroke, modifications, land))
                     if setcode in ["5ED", "USG"]:
                         # Monocolored lands with colored rules box and YELLOW TRIM -- Examples: Hollow Trees (5ED)
