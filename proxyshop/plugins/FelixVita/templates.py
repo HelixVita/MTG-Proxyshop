@@ -400,15 +400,17 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
         if setcode in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
-            psd.getLayer("B - DRK Brightness", "Nonland").visible = True
-            psd.getLayer("B - DRK Color Balance", "Nonland").visible = True
+            black_group = psd.getLayerSet("B", "Nonland")
+            psd.getLayer("B - DRK Brightness", black_group).visible = True
+            psd.getLayer("B - DRK Color Balance", black_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
         # super().enable_frame_layers()
         if not self.is_land:
             layer_set = psd.getLayerSet(con.layers['NONLAND'])
             selected_layer = self.layout.background
-            psd.getLayer(selected_layer, layer_set).visible = True
+            # psd.getLayer(selected_layer, layer_set).visible = True
+            psd.getLayerSet(selected_layer, layer_set).visible = True
         elif self.is_land:
             land = con.layers['LAND']
             abur = "ABUR Duals (ME4)"
