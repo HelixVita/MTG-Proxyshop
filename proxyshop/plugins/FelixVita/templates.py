@@ -196,7 +196,151 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             psd.fill_expansion_symbol(self.reference, psd.rgb_white())
 
 
-class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
+class StarterTemplate (temp.BaseTemplate):
+    """
+    A BaseTemplate with a few extra features. In most cases this will be your starter template
+    you want to extend for the most important functionality.
+    """
+    def __init__(self, layout, file):
+        super().__init__(layout, file)
+        try: self.is_creature = bool(self.layout.power and self.layout.toughness)
+        except AttributeError: self.is_creature = False
+        try: self.is_legendary = bool(self.layout.type_line.find("Legendary") >= 0)
+        except AttributeError: self.is_legendary = False
+        try: self.is_land = bool(self.layout.type_line.find("Land") >= 0)
+        except AttributeError: self.is_land = False
+        try: self.is_companion = bool("companion" in self.layout.frame_effects)
+        except AttributeError: self.is_companion = False
+
+    def basic_text_layers(self, text_and_icons):
+        """
+        Set up the card's mana cost, name (scaled to not overlap with mana cost), expansion symbol, and type line
+        (scaled to not overlap with the expansion symbol).
+        """
+        # Shift name if necessary (hiding the unused layer)
+        name = psd.getLayer(con.layers['NAME'], text_and_icons)
+        name_selected = name
+        try:
+            if self.name_shifted:
+                name_selected = psd.getLayer(con.layers['NAME_SHIFT'], text_and_icons)
+                name.visible, name_selected.visible = False, True
+        except AttributeError: pass
+
+        # Shift typeline if necessary
+        type_line = psd.getLayer(con.layers['TYPE_LINE'], text_and_icons)
+        type_line_selected = type_line
+        try:
+            # Handle error if type line shift / color indicator doesn't exist
+            if self.type_line_shifted:
+                type_line_selected = psd.getLayer(con.layers['TYPE_LINE_SHIFT'], text_and_icons)
+                psd.getLayer(self.layout.pinlines, con.layers['COLOR_INDICATOR']).visible = True
+                type_line.visible, type_line_selected.visible = False, True
+        except AttributeError: pass
+
+        # Mana, expansion
+        mana_cost = psd.getLayer(con.layers['MANA_COST'], text_and_icons)
+        # expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], text_and_icons)
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)          # FelixVita
+        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)  # FelixVita: Changed in order to make stroke + innershadow work.
+        expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
+
+        # Setcode & booleans
+        setcode = self.layout.set.upper()
+        is_pre_exodus = setcode in pre_exodus_sets
+        has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol
+
+        # Add text layers
+        self.tx_layers.extend([
+            txt_layers.BasicFormattedTextField(
+                layer=mana_cost,
+                text_contents=self.layout.mana_cost,
+                text_color=psd.rgb_black()
+            ),
+            txt_layers.ScaledTextField(
+                layer=name_selected,
+                text_contents=self.layout.name,
+                text_color=psd.get_text_layer_color(name_selected),
+                reference_layer=mana_cost
+            ),
+            RetroExpansionSymbolField(
+                layer = expansion_symbol,
+                text_contents = self.layout.symbol,
+                rarity = self.layout.rarity,
+                reference = expansion_reference,
+                is_pre_exodus = is_pre_exodus,
+                has_hollow_set_symbol = has_hollow_set_symbol,
+                setcode = setcode
+                ),
+            # txt_layers.ExpansionSymbolField(
+            #     layer=expansion_symbol,
+            #     text_contents=self.layout.symbol,
+            #     rarity=self.layout.rarity,
+            #     reference=expansion_reference
+            # ),
+            txt_layers.ScaledTextField(
+                layer=type_line_selected,
+                text_contents=self.layout.type_line,
+                text_color=psd.get_text_layer_color(type_line_selected),
+                reference_layer=expansion_symbol
+            ),
+        ])
+
+class NormalClassicTemplate (StarterTemplate):
+    """
+     * A template for 7th Edition frame. Each frame is flattened into its own singular layer.
+    """
+    def template_file_name(self): return "normal-classic"
+    def template_suffix(self): return "Classic"
+
+    def __init__(self, layout, file):
+        # No collector info for Classic
+        cfg.real_collector = False
+        cfg.cfg.real_collector = False
+        if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
+        super().__init__(layout, file)
+        self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
+
+        # Basic text
+        text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+        super().basic_text_layers(text_and_icons)
+
+        # Text reference and rules text
+        if self.is_land: reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE_LAND'], text_and_icons)
+        else: reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons)
+        rules_text = psd.getLayer(con.layers['RULES_TEXT'], text_and_icons)
+        is_centered = bool(
+            len(self.layout.flavor_text) <= 1
+            and len(self.layout.oracle_text) <= 70
+            and self.layout.oracle_text.find("\n") < 0
+        )
+
+        # Add to text layers
+        self.tx_layers.append(
+            txt_layers.FormattedTextArea(
+                layer=rules_text,
+                text_contents=self.layout.oracle_text,
+                text_color=psd.get_text_layer_color(rules_text),
+                flavor_text=self.layout.flavor_text,
+                is_centered=is_centered,
+                reference_layer=reference_layer,
+                fix_length=False
+            )
+        )
+
+        # Add creature text layers
+        power_toughness = psd.getLayer(con.layers['POWER_TOUGHNESS'], text_and_icons)
+        if self.is_creature:
+            self.tx_layers.append(
+                txt_layers.TextField(
+                    layer=power_toughness,
+                    text_contents=str(self.layout.power) + "/" + str(self.layout.toughness),
+                    text_color=psd.get_text_layer_color(power_toughness)
+                )
+            )
+        else: power_toughness.visible = False
+
+
+class RetroNinetysevenTemplate (NormalClassicTemplate):
     """
      * Notes about my template here
      * Created by FelixVita
@@ -209,9 +353,6 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
 
     # OPTIONAL
     def __init__ (self, layout, file):
-        #     if self.layout['scryfall']['border_color'] == 'white':
-        #         psd.getLayer("<layer name>", "<layer group, if its in a group>").visible = True
-        #     else: psd.getLayer("<layer name>", "<layer group>").visible = False
         super().__init__(layout, file)
         # Overwrite the expansion symbol field text layer using custom class
         setcode = layout.set.upper()
@@ -220,20 +361,26 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
         expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
         try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
         except: expansion_reference = None
-        for i, layer in enumerate(self.tx_layers):
-            if isinstance(layer, txt_layers.ExpansionSymbolField):
-                if setcode in sets_without_set_symbol:
-                    del self.tx_layers[i]
-                else:
-                    self.tx_layers[i] = RetroExpansionSymbolField(
-                        layer = expansion_symbol,
-                        text_contents = self.layout.symbol,
-                        rarity = self.layout.rarity,
-                        reference = expansion_reference,
-                        is_pre_exodus = setcode in pre_exodus_sets,
-                        has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol,
-                        setcode = setcode
-                    )
+
+        # Disable RetroExpansionSymbolField for Alliances cards
+        if setcode == "ALL":
+            for i, layer in enumerate(self.tx_layers):
+                if isinstance(layer, RetroExpansionSymbolField): del self.tx_layers[i]
+
+        # for i, layer in enumerate(self.tx_layers):
+        #     if isinstance(layer, txt_layers.ExpansionSymbolField):
+        #         if setcode in sets_without_set_symbol:
+        #             del self.tx_layers[i]
+        #         else:
+        #             self.tx_layers[i] = RetroExpansionSymbolField(
+        #                 layer = expansion_symbol,
+        #                 text_contents = self.layout.symbol,
+        #                 rarity = self.layout.rarity,
+        #                 reference = expansion_reference,
+        #                 is_pre_exodus = setcode in pre_exodus_sets,
+        #                 has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol,
+        #                 setcode = setcode
+        #             )
 
 
     def enable_frame_layers (self):
@@ -271,8 +418,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             thicker_trim_stroke = "Trim - Thicker Outer Black Stroke (2px)"
             thickest_trim_stroke = "Trim - Thickest Outer Black Stroke (3px)"
             thicker_bevels_rules_box = "Rules Box - Inner Bevel - Enhance"
-            mirage_leafy_box = "Rules Box - Inner - Mirage - NoText - Enhanced"
-            neutral_land_frame_color = "Normal - Color"
+            neutral_land_frame_color = "Neutral - Color (v2)"
             pinlines: str = self.layout.pinlines
             print(f"{pinlines=}")
             is_dual = len(pinlines) == 2
@@ -284,13 +430,16 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                 # Then use that set's unique frame
                 layers_to_unhide.append((land, wholes, land))
                 groups_to_unhide.append((setcode + " - Color", wholes, land))
-                layers_to_unhide.append((thicker_trim_stroke, modifications, land))
                 if setcode in ["FEM", "ALL"]:
                     # Enable thick colored trim with no black strokes
                     groups_to_unhide.append(("Trim - " + setcode, modifications, land))
-                if setcode == "ALL":
-                    # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-                    groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
+                    if setcode == "ALL":
+                        # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
+                        groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
+                elif setcode != "LEG":
+                    layers_to_unhide.append((thicker_trim_stroke, modifications, land))
+
+
 
             elif setcode in ["MIR", "VIS"]:
                     # Mirage/Visions colorless lands -- Examples: Teferi's Isle (MIR), Griffin Canyon (VIS)
@@ -360,17 +509,3 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
             for layer in layers_to_unhide:
                 unhide(layer)
 
-            # if selected_group:
-            #     layer_set = psd.getLayerSet(selected_group, con.layers['LAND'])
-            #     if selected_inner_group:
-            #         layer_set.visible = True
-            #         layer_set = psd.getLayerSet(selected_inner_group, layer_set)
-            #     layer_set.visible = True
-            # if selected_layer:
-            #     if selected_layer_is_from_inner:
-            #         selected_layer = psd.getLayer(selected_layer, selected_inner_group)
-            #     elif selected_group:
-            #         selected_layer = psd.getLayer(selected_layer, selected_group)
-            #     else:
-            #         selected_layer = psd.getLayer(selected_layer)
-            #     selected_layer.visible = True
