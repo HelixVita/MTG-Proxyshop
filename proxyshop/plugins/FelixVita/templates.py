@@ -293,9 +293,9 @@ class NormalClassicTemplate (StarterTemplate):
     def template_suffix(self): return "Classic"
 
     def __init__(self, layout, file):
-        # No collector info for Classic
-        cfg.real_collector = False
-        cfg.cfg.real_collector = False
+        # Collector info
+        cfg.real_collector = True  # FelixVita
+        cfg.cfg.real_collector = True  # FelixVita
         if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
         super().__init__(layout, file)
         self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
@@ -381,6 +381,44 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         #                 has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol,
         #                 setcode = setcode
         #             )
+
+    def collector_info(self):
+        """
+        Format and add the collector info at the bottom.
+        """
+
+        # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
+        artist_layer = psd.getLayer(con.layers['ARTIST'], self.legal_layer)
+        psd.replace_text(artist_layer, "Artist", self.layout.artist)
+
+        # Fill in detailed collector info, if available ("SET • 999/999 R" --> "SET • 999/999 R")
+        if (self.layout.collector_number and cfg.real_collector):
+            # Reveal detailed collector layer, hide basic collector layer
+            collector_layer = psd.getLayer("Set & Collector Info", con.layers['LEGAL'])
+            collector_layer.visible = True
+            psd.getLayer("Set", self.legal_layer).visible = False
+            # Try to obtain release year
+            try:
+                release_year = self.layout.scryfall['released_at'][:4]
+            except:
+                release_year = None
+            # Conditionally build up the collector info string (leaving out any unavailable info)
+            collector_string = ""
+            collector_string += "Custom Proxy, Not for Sale • "
+            collector_string += f"{self.layout.set} • "
+            collector_string += f"{release_year} • " if release_year else ""
+            collector_string += f"{self.layout.collector_number}"
+            collector_string += f"/{self.layout.card_count}" if self.layout.card_count else ""
+            collector_string += f" {self.layout.rarity_letter}" if self.layout.rarity else ""
+            # Apply the collector info
+            collector_layer.textItem.contents = collector_string
+            # # Apply the collector info
+            # collector_layer.textItem.contents = \
+            #     f"{self.layout.set} • {self.layout.collector_number}/{self.layout.card_count} {self.layout.rarity_letter}"
+        else:
+            # Fill in basic collector info ("• EN" --> "LEA • EN")
+            set_layer = psd.getLayer("Set", self.legal_layer)
+            set_layer.textItem.contents = self.layout.set + set_layer.textItem.contents
 
 
     def enable_frame_layers (self):
