@@ -391,7 +391,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         artist_layer = psd.getLayer(con.layers['ARTIST'], self.legal_layer)
         psd.replace_text(artist_layer, "Artist", self.layout.artist)
 
-        # Fill in detailed collector info, if available ("SET • 999/999 R" --> "SET • 999/999 R")
+        # Fill in detailed collector info, if available ("SET • 999/999 C" --> "ABC • 043/150 R")
         if (self.layout.collector_number and cfg.real_collector):
             # Reveal detailed collector layer, hide basic collector layer
             collector_layer = psd.getLayer("Set & Collector Info", con.layers['LEGAL'])
