@@ -254,6 +254,7 @@ class StarterTemplate (BaseTemplate):
 
         # Mana, expansion
         mana_cost = psd.getLayer(con.layers['MANA_COST'], text_and_icons)
+        # expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], text_and_icons)
         retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)          # FelixVita
         expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)  # FelixVita: Changed in order to make stroke + innershadow work.
         expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)

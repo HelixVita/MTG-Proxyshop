@@ -290,7 +290,7 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     groups_to_unhide.append(("Trim - " + setcode, modifications, land))
                 if setcode == "ALL":
                     # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-                    layers_to_unhide(("Set Symbol - Alliances"))
+                    groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
 
             elif setcode in ["MIR", "VIS"]:
                     # Mirage/Visions colorless lands -- Examples: Teferi's Isle (MIR), Griffin Canyon (VIS)
@@ -344,8 +344,9 @@ class RetroNinetysevenTemplate (temp.NormalClassicTemplate):
                     layers_to_unhide.append((thickest_trim_stroke, modifications, land))
                     if setcode in ["5ED", "USG"]:
                         # Monocolored lands with colored rules box and YELLOW TRIM -- Examples: Hollow Trees (5ED)
-                        layers_to_unhide.append(("Trim 5ED-USG", wholes, land))
-                        layers_to_unhide.append(("W - Color Correction - 5ED-USG", wholes, land))
+                        layers_to_unhide.append(("Trim 5ED-USG", modifications, land))
+                        if pinlines == "W":
+                            layers_to_unhide.append(("W - Color Correction - 5ED-USG", pinlines, wholes, land))
 
             else:
                 # Colorless lands (post-USG style) -- Examples: Crystal Quarry (ODY)
