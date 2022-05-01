@@ -53,6 +53,7 @@ sets_with_hollow_set_symbol = [
     "ONS", # Probably
     # Maybe:
     # POR
+    "ATQ",
 ]
 
 sets_lacking_symbol_stroke = [
@@ -168,7 +169,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Symbol stroke size (thickness)
         symbol_stroke_size = cfg.cfg.symbol_stroke
         # Special cases
-        if self.setcode == "DRK": symbol_stroke_size = 2
+        if self.setcode == "DRK" and self.layout.background == "B": symbol_stroke_size = 2
         elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
 
         # Make RetroExpansionGroup the active layer
@@ -178,12 +179,20 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Apply set symbol stroke (white/black) and rarity color (silver/gold/mythic)
         if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
-        elif self.rarity == con.rarity_common or self.is_pre_exodus: psd.apply_stroke(symbol_stroke_size, psd.rgb_white())  # Apply white stroke only
+        elif self.rarity == con.rarity_common or self.is_pre_exodus:
+            # Apply white stroke only
+            if str(self.layout.scryfall["frame"]) == "1993":
+                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
+            else:
+                psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
         else:
             # Apply white stroke and rarity color
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
-            psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
+            if str(self.layout.scryfall["frame"]) == "1993":
+                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
+            else:
+                psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
             psd.select_layer_pixels(self.layer)
             app.activeDocument.activeLayer = mask_layer
             psd.align_horizontal()
@@ -193,7 +202,10 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Fill in the expansion symbol?
         if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
-            psd.fill_expansion_symbol(self.reference, psd.rgb_white())
+            if str(self.layout.scryfall["frame"]) == "1993":
+                psd.fill_expansion_symbol(self.reference, psd.get_rgb(204, 204, 204))
+            else:
+                psd.fill_expansion_symbol(self.reference, psd.rgb_white())
 
 
 class StarterTemplate (temp.BaseTemplate):
@@ -401,38 +413,47 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         Format and add the collector info at the bottom.
         """
 
+        legal_layer = psd.getLayerSet(self.legal_layer)
+        if str(self.layout.scryfall["frame"]) == "1993":
+            # Hide set & artist layers; and reveal left-justified ones
+            psd.getLayer(con.layers['SET'], legal_layer).visible = False
+            psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
+            legal_layer = psd.getLayerSet("Left-Justified", legal_layer)
+            psd.getLayerSet(legal_layer).visible = True
+            # Color the set info grey
+
+        # Color the set info black if card is white
+        if self.layout.background == "W":
+            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.rgb_black()
+
         # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
-        artist_layer = psd.getLayer(con.layers['ARTIST'], self.legal_layer)
+        artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
         psd.replace_text(artist_layer, "Artist", self.layout.artist)
 
         # Fill in detailed collector info, if available ("SET • 999/999 C" --> "ABC • 043/150 R")
-        if (self.layout.collector_number and cfg.real_collector):
-            # Reveal detailed collector layer, hide basic collector layer
-            collector_layer = psd.getLayer("Set & Collector Info", con.layers['LEGAL'])
-            collector_layer.visible = True
-            psd.getLayer("Set", self.legal_layer).visible = False
-            # Try to obtain release year
-            try:
-                release_year = self.layout.scryfall['released_at'][:4]
-            except:
-                release_year = None
-            # Conditionally build up the collector info string (leaving out any unavailable info)
-            collector_string = ""
-            collector_string += "Custom Proxy • "
-            collector_string += f"{self.layout.set} • "
+        collector_layer = psd.getLayer(con.layers['SET'], legal_layer)
+        collector_layer.visible = True
+
+        # Try to obtain release year
+        try:
+            release_year = self.layout.scryfall['released_at'][:4]
+        except:
+            release_year = None
+
+        # Conditionally build up the collector info string (leaving out any unavailable info)
+        collector_string = ""
+        collector_string += "Proxy, Not for Sale — "
+        collector_string += f"{self.layout.set} • "
+        if not cfg.real_collector:
+            collector_string += "EN"
+        else:
             collector_string += f"{release_year} • " if release_year else ""
             collector_string += f"{self.layout.collector_number}"
             collector_string += f"/{self.layout.card_count}" if self.layout.card_count else ""
             collector_string += f" {self.layout.rarity_letter}" if self.layout.rarity else ""
-            # Apply the collector info
-            collector_layer.textItem.contents = collector_string
-            # # Apply the collector info
-            # collector_layer.textItem.contents = \
-            #     f"{self.layout.set} • {self.layout.collector_number}/{self.layout.card_count} {self.layout.rarity_letter}"
-        else:
-            # Fill in basic collector info ("• EN" --> "LEA • EN")
-            set_layer = psd.getLayer("Set", self.legal_layer)
-            set_layer.textItem.contents = self.layout.set + set_layer.textItem.contents
+
+        # Apply the collector info
+        collector_layer.textItem.contents = collector_string
 
 
     def enable_frame_layers (self):
@@ -457,10 +478,16 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("B - DRK Color Balance", black_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
-        if self.layout.background == "W":
-            print("ASLDKALKSJDJLKASKLDLASD")
-            psd.getLayer("Set & Collector Info", "Legal").textItem.color = psd.rgb_black()
+
+        # Make all white text grey if frame is 1993 style
+        if str(self.layout.scryfall["frame"]) == "1993":
+            psd.getLayer(con.layers['NAME'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
+            psd.getLayer(con.layers['TYPE_LINE'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
+            psd.getLayer(con.layers['ARTIST'], con.layers['LEGAL']).textItem.color = psd.get_rgb(204, 204, 204)
+            psd.getLayer(con.layers['POWER_TOUGHNESS'], con.layers['LEGAL']).textItem.color = psd.get_rgb(204, 204, 204)
+
         # super().enable_frame_layers()
+
         if not self.is_land:
             layer_set = psd.getLayerSet(con.layers['NONLAND'])
             selected_layer = self.layout.background
@@ -495,8 +522,6 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                         groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
                 elif setcode != "LEG":
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
-
-
 
             elif setcode in ["MIR", "VIS"]:
                     # Mirage/Visions colorless lands -- Examples: Teferi's Isle (MIR), Griffin Canyon (VIS)
