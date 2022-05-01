@@ -285,6 +285,20 @@ class StarterTemplate (temp.BaseTemplate):
             ),
         ])
 
+        # Add expansion symbol field
+        if setcode not in sets_without_set_symbol and setcode != "ALL":
+            self.tx_layers.extend([
+                RetroExpansionSymbolField(
+                    layer = expansion_symbol,
+                    text_contents = self.layout.symbol,
+                    rarity = self.layout.rarity,
+                    reference = expansion_reference,
+                    is_pre_exodus = is_pre_exodus,
+                    has_hollow_set_symbol = has_hollow_set_symbol,
+                    setcode = setcode
+                    )
+            ])
+
 class NormalClassicTemplate (StarterTemplate):
     """
      * A template for 7th Edition frame. Each frame is flattened into its own singular layer.
@@ -363,7 +377,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         except: expansion_reference = None
 
         # Disable RetroExpansionSymbolField for Alliances cards
-        if setcode == "ALL":
+        if setcode in sets_without_set_symbol or setcode == "ALL":
             for i, layer in enumerate(self.tx_layers):
                 if isinstance(layer, RetroExpansionSymbolField): del self.tx_layers[i]
 
@@ -404,7 +418,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 release_year = None
             # Conditionally build up the collector info string (leaving out any unavailable info)
             collector_string = ""
-            collector_string += "Custom Proxy, Not for Sale • "
+            collector_string += "Custom Proxy • "
             collector_string += f"{self.layout.set} • "
             collector_string += f"{release_year} • " if release_year else ""
             collector_string += f"{self.layout.collector_number}"
@@ -443,6 +457,9 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("B - DRK Color Balance", black_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
+        if self.layout.background == "W":
+            print("ASLDKALKSJDJLKASKLDLASD")
+            psd.getLayer("Set & Collector Info", "Legal").textItem.color = psd.rgb_black()
         # super().enable_frame_layers()
         if not self.is_land:
             layer_set = psd.getLayerSet(con.layers['NONLAND'])
