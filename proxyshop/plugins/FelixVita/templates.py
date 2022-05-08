@@ -191,7 +191,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
-            if self.setcode in sets_with_gray_text:
+            if self.setcode in sets_with_gray_text or self.setcode == "HML":
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -199,7 +199,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             # Apply white stroke and rarity color
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
-            if self.setcode in sets_with_gray_text:
+            if self.setcode in sets_with_gray_text or self.setcode == "HML":
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -276,7 +276,7 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.BasicFormattedTextField(
                 layer=mana_cost,
                 text_contents=self.layout.mana_cost,
-                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.rgb_black()
+                text_color=psd.rgb_black()
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
@@ -302,7 +302,7 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
                 text_contents=self.layout.type_line,
-                text_color=psd.get_text_layer_color(type_line_selected),
+                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.get_text_layer_color(type_line_selected),
                 reference_layer=expansion_symbol
             ),
         ])
@@ -425,7 +425,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         """
 
         legal_layer = psd.getLayerSet(con.layers['LEGAL'])
-        if self.layout.set.upper() in sets_with_gray_text:
+        # if self.layout.set.upper() in sets_with_gray_text:
+        if str(self.layout.scryfall['frame']) == "1993":
             # Hide set & artist layers; and reveal left-justified ones
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
@@ -489,13 +490,17 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
-        if setcode in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
-            black_group = psd.getLayerSet("B", "Nonland")
-            psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
-            psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
-            psd.getLayer("1993 Style - Brightness", black_group).visible = True
-            psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
-            psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
+        if setcode in ["DRK", "ATQ", "LEG", ]:
+            if self.layout.scryfall['colors'] == ["B"]:
+                black_group = psd.getLayerSet("B", "Nonland")
+                psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
+                psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
+                psd.getLayer("1993 Style - Brightness", black_group).visible = True
+                psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
+                psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
+            elif self.layout.scryfall['colors'] == ["G"]:
+                green_group = psd.getLayerSet("G", "Nonland")
+                psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
