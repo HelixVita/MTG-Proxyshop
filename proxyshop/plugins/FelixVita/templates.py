@@ -104,6 +104,21 @@ original_dual_lands = [
     "Tropical Island",
 ]
 
+sets_with_brighter_black_frame = [
+    "LEA",
+    "LEB",
+    "2ED",
+    "ARN",
+    "ATQ",
+    "3ED",
+    "LEG",
+    "DRK",
+    "FEM",
+    "4ED",
+    "ICE",
+    "ALL",
+]
+
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 # Overwrite constants
@@ -490,15 +505,14 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
-        if setcode in ["DRK", "ATQ", "LEG", ]:
-            if self.layout.scryfall['colors'] == ["B"]:
+        if setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["B"]:
                 black_group = psd.getLayerSet("B", "Nonland")
                 psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
                 psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
                 psd.getLayer("1993 Style - Brightness", black_group).visible = True
                 psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
                 psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
-            elif self.layout.scryfall['colors'] == ["G"]:
+        elif setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
                 green_group = psd.getLayerSet("G", "Nonland")
                 psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
         if "Flashback" in self.layout.keywords:
