@@ -68,6 +68,15 @@ sets_lacking_symbol_stroke = [
     "ATQ",
 ]
 
+sets_with_gray_text = [
+    "LEA",
+    "LEB",
+    "2ED",
+    "ARN",
+    "ATQ",
+    "3ED",
+]
+
 special_land_frames = {
     "ARN": "Arabian Nights",
     "ATQ": "Antiquities",
@@ -145,7 +154,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
      * `centered`: Whether to center horizontally, ex: Ixalan
      * `symbol_stroke_size`: The symbol stroke size (thickness).
     """
-    def __init__ (self, layer, text_contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None):
+    def __init__ (self, layer, text_contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None, background=None):
         super().__init__(layer, text_contents, psd.rgb_black())
         self.centered = centered
         self.rarity = rarity
@@ -153,6 +162,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         self.is_pre_exodus = is_pre_exodus
         self.has_hollow_set_symbol = has_hollow_set_symbol
         self.setcode = setcode
+        self.background = background
         if rarity in (con.rarity_bonus, con.rarity_special):
             self.rarity = con.rarity_mythic
 
@@ -169,7 +179,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Symbol stroke size (thickness)
         symbol_stroke_size = cfg.cfg.symbol_stroke
         # Special cases
-        if self.setcode == "DRK" and self.layout.background == "B": symbol_stroke_size = 2
+        if self.setcode == "DRK" and self.background == "B": symbol_stroke_size = 2
         elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
 
         # Make RetroExpansionGroup the active layer
@@ -181,7 +191,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
-            if str(self.layout.scryfall["frame"]) == "1993":
+            if self.setcode in sets_with_gray_text:
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -189,7 +199,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             # Apply white stroke and rarity color
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
-            if str(self.layout.scryfall["frame"]) == "1993":
+            if self.setcode in sets_with_gray_text:
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -202,7 +212,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Fill in the expansion symbol?
         if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
-            if str(self.layout.scryfall["frame"]) == "1993":
+            if self.setcode in sets_with_gray_text:
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(204, 204, 204))
             else:
                 psd.fill_expansion_symbol(self.reference, psd.rgb_white())
@@ -274,15 +284,15 @@ class StarterTemplate (temp.BaseTemplate):
                 text_color=psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
-            RetroExpansionSymbolField(
-                layer = expansion_symbol,
-                text_contents = self.layout.symbol,
-                rarity = self.layout.rarity,
-                reference = expansion_reference,
-                is_pre_exodus = is_pre_exodus,
-                has_hollow_set_symbol = has_hollow_set_symbol,
-                setcode = setcode
-                ),
+            # RetroExpansionSymbolField(
+            #     layer = expansion_symbol,
+            #     text_contents = self.layout.symbol,
+            #     rarity = self.layout.rarity,
+            #     reference = expansion_reference,
+            #     is_pre_exodus = is_pre_exodus,
+            #     has_hollow_set_symbol = has_hollow_set_symbol,
+            #     setcode = setcode
+            #     ),
             # txt_layers.ExpansionSymbolField(
             #     layer=expansion_symbol,
             #     text_contents=self.layout.symbol,
@@ -307,7 +317,8 @@ class StarterTemplate (temp.BaseTemplate):
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
                     has_hollow_set_symbol = has_hollow_set_symbol,
-                    setcode = setcode
+                    setcode = setcode,
+                    background = self.layout.background
                     )
             ])
 
@@ -413,18 +424,18 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         Format and add the collector info at the bottom.
         """
 
-        legal_layer = psd.getLayerSet(self.legal_layer)
-        if str(self.layout.scryfall["frame"]) == "1993":
+        legal_layer = psd.getLayerSet(con.layers['LEGAL'])
+        if self.layout.set.upper() in sets_with_gray_text:
             # Hide set & artist layers; and reveal left-justified ones
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
-            legal_layer = psd.getLayerSet("Left-Justified", legal_layer)
+            legal_layer = psd.getLayerSet("Left-Justified", con.layers['LEGAL'])
             psd.getLayerSet(legal_layer).visible = True
             # Color the set info grey
 
         # Color the set info black if card is white
         if self.layout.background == "W":
-            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.rgb_black()
+            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
 
         # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
         artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
@@ -479,8 +490,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
-        # Make all white text grey if frame is 1993 style
-        if str(self.layout.scryfall["frame"]) == "1993":
+        # Make all white text grey set is between and including LEA-ATQ:
+        if setcode in sets_with_gray_text:
             psd.getLayer(con.layers['NAME'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
             psd.getLayer(con.layers['TYPE_LINE'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
             psd.getLayer(con.layers['ARTIST'], con.layers['LEGAL']).textItem.color = psd.get_rgb(204, 204, 204)
