@@ -212,7 +212,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Fill in the expansion symbol?
         if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
-            if self.setcode in sets_with_gray_text:
+            if self.setcode in sets_with_gray_text or self.setcode == "HML":
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
             else:
                 psd.fill_expansion_symbol(self.reference, psd.rgb_white())
