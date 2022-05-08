@@ -192,7 +192,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
             if self.setcode in sets_with_gray_text:
-                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
+                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
         else:
@@ -200,7 +200,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
             if self.setcode in sets_with_gray_text:
-                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(204, 204, 204))
+                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
             psd.select_layer_pixels(self.layer)
@@ -213,7 +213,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
             if self.setcode in sets_with_gray_text:
-                psd.fill_expansion_symbol(self.reference, psd.get_rgb(204, 204, 204))
+                psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
             else:
                 psd.fill_expansion_symbol(self.reference, psd.rgb_white())
 
@@ -276,12 +276,12 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.BasicFormattedTextField(
                 layer=mana_cost,
                 text_contents=self.layout.mana_cost,
-                text_color=psd.rgb_black()
+                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.rgb_black()
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
                 text_contents=self.layout.name,
-                text_color=psd.get_text_layer_color(name_selected),
+                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
             # RetroExpansionSymbolField(
@@ -371,7 +371,7 @@ class NormalClassicTemplate (StarterTemplate):
                 txt_layers.TextField(
                     layer=power_toughness,
                     text_contents=str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color=psd.get_text_layer_color(power_toughness)
+                    text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in sets_with_gray_text else psd.get_text_layer_color(power_toughness)
                 )
             )
         else: power_toughness.visible = False
@@ -430,12 +430,18 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
             legal_layer = psd.getLayerSet("Left-Justified", con.layers['LEGAL'])
-            psd.getLayerSet(legal_layer).visible = True
-            # Color the set info grey
+            legal_layer.visible = True
 
-        # Color the set info black if card is white
+        # Color the set info black if card is white (or color it gray for some really old sets)
         if self.layout.background == "W":
             psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
+        elif self.layout.set.upper() in sets_with_gray_text:
+            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
+
+        # Color artist info grey if appropriate
+        if self.layout.set.upper() in sets_with_gray_text:
+            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
+
 
         # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
         artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
@@ -493,14 +499,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
-        # Make all white text grey set is between and including LEA-ATQ:
-        if setcode in sets_with_gray_text:
-            psd.getLayer(con.layers['NAME'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
-            psd.getLayer(con.layers['TYPE_LINE'], con.layers['TEXT_AND_ICONS']).textItem.color = psd.get_rgb(204, 204, 204)
-            psd.getLayer(con.layers['ARTIST'], con.layers['LEGAL']).textItem.color = psd.get_rgb(204, 204, 204)
-            psd.getLayer(con.layers['POWER_TOUGHNESS'], con.layers['LEGAL']).textItem.color = psd.get_rgb(204, 204, 204)
-
-        # super().enable_frame_layers()
+         # super().enable_frame_layers()
 
         if not self.is_land:
             layer_set = psd.getLayerSet(con.layers['NONLAND'])
