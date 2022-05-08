@@ -166,6 +166,7 @@ class BaseTemplate:
             for this_layer in self.tx_layers:
                 this_layer.execute()
         except Exception as e:
+            print(e)
             result = console.log_error(
                 "This card is incompatible with this Template!",
                 self.layout.name,
