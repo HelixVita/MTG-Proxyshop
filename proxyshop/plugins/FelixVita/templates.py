@@ -485,8 +485,11 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
         if setcode in ["DRK", "ATQ", "LEG", ] and self.layout.scryfall['colors'] == ["B"]:
             black_group = psd.getLayerSet("B", "Nonland")
-            psd.getLayer("B - DRK Brightness", black_group).visible = True
-            psd.getLayer("B - DRK Color Balance", black_group).visible = True
+            psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
+            psd.getLayer("1993 Style - Brightness", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
+            psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
