@@ -186,7 +186,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 100
+            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode == "STH" else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
@@ -481,7 +481,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             collector_string += "EN"
         else:
             collector_string += f"{release_year} • " if release_year else ""
-            collector_string += f"{self.layout.collector_number}"
+            collector_string += str(self.layout.collector_number).lstrip("0")
             collector_string += f"/{self.layout.card_count}" if self.layout.card_count else ""
             collector_string += f" {self.layout.rarity_letter}" if self.layout.rarity else ""
 
@@ -506,15 +506,31 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
         if setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["B"]:
-                black_group = psd.getLayerSet("B", "Nonland")
-                psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
-                psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
-                psd.getLayer("1993 Style - Brightness", black_group).visible = True
-                psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
-                psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
+            black_group = psd.getLayerSet("B", "Nonland")
+            psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
+            psd.getLayer("1993 Style - Brightness", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
+            psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
+            psd.getLayer("1993 Style - Hue", black_group).visible = True
         elif setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
-                green_group = psd.getLayerSet("G", "Nonland")
-                psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
+            green_group = psd.getLayerSet("G", "Nonland")
+            psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
+            psd.getLayer("1993 Style - G Frame Color Balance", green_group).visible = True
+            psd.getLayer("1993 Style - G Box Color Balance", green_group).visible = True
+        elif setcode in ["LEA", "LEB"] and self.layout.scryfall['colors'] == ["R"]:
+            red_group = psd.getLayerSet("R", "Nonland")
+            psd.getLayer("LEA-LEB Inner Bevel Sunlight", red_group).visible = True
+            psd.getLayer("LEA-LEB Box Hue", red_group).visible = True
+            psd.getLayer("LEA-LEB Hue", red_group).visible = True
+            psd.getLayer("LEA-LEB Color Balance", red_group).visible = True
+        elif setcode in ["LEA", "LEB"] and self.layout.scryfall['colors'] == ["W"]:
+            white_group = psd.getLayerSet("W", "Nonland")
+            psd.getLayer("LEA-LEB - Box Levels", white_group).visible = True
+            psd.getLayer("LEA-LEB - Box Hue/Saturation", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
