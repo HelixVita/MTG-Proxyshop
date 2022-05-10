@@ -451,7 +451,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
         legal_layer = psd.getLayerSet(con.layers['LEGAL'])
         # if self.layout.set.upper() in sets_with_gray_text:
-        if str(self.layout.scryfall['frame']) == "1993":
+        if self.layout.set.upper() in pre_exodus_sets:
             # Hide set & artist layers; and reveal left-justified ones
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
