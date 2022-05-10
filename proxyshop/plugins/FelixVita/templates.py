@@ -104,7 +104,11 @@ original_dual_lands = [
     "Tropical Island",
 ]
 
-sets_with_brighter_black_frame = [
+pre_mirage_sets = [
+# Mirage featured some changes to the frame, including but not limited to:
+# 1. Citations in flavor text are now right-justified
+# 2. The rules box of white cards is now less patterned (less contrast)
+# 3. Frame of black cards is now darker
     "LEA",
     "LEB",
     "2ED",
@@ -506,7 +510,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
             psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
-        if setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["B"]:
+        if setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["B"]:
             black_group = psd.getLayerSet("B", "Nonland")
             psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
             psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
@@ -514,7 +518,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
             psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
             psd.getLayer("1993 Style - Hue", black_group).visible = True
-        elif setcode in sets_with_brighter_black_frame and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
+        elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
             green_group = psd.getLayerSet("G", "Nonland")
             psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
             psd.getLayer("1993 Style - G Frame Color Balance", green_group).visible = True
