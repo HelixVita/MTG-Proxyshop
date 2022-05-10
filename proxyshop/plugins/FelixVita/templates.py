@@ -406,18 +406,19 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
     # OPTIONAL
     def __init__ (self, layout):
         super().__init__(layout)
-        # Overwrite the expansion symbol field text layer using custom class
-        setcode = layout.set.upper()
-        text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
-        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
-        expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
-        try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
-        except: expansion_reference = None
 
-        # Disable RetroExpansionSymbolField for Alliances cards
-        if setcode in sets_without_set_symbol or setcode == "ALL":
-            for i, layer in enumerate(self.tx_layers):
-                if isinstance(layer, RetroExpansionSymbolField): del self.tx_layers[i]
+        # # Overwrite the expansion symbol field text layer using custom class
+        # setcode = layout.set.upper()
+        # text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+        # retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
+        # expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
+        # try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
+        # except: expansion_reference = None
+
+        # # Disable RetroExpansionSymbolField for Alliances cards
+        # if setcode in sets_without_set_symbol or setcode == "ALL":
+        #     for i, layer in enumerate(self.tx_layers):
+        #         if isinstance(layer, RetroExpansionSymbolField): del self.tx_layers[i]
 
         # for i, layer in enumerate(self.tx_layers):
         #     if isinstance(layer, txt_layers.ExpansionSymbolField):
