@@ -61,7 +61,6 @@ class BaseLayout:
 
         # Basic data
         self.scryfall = scryfall
-        self.mtgset = scry.set_info(self.scryfall['set'])
         self.card_name_raw = card_name
 
         # Extract scryfall info that is shared by all card types
@@ -81,17 +80,21 @@ class BaseLayout:
         elif len(self.collector_number) == 1:
             self.collector_number = f"00{self.collector_number}"
 
-        # Prepare card count
-        try: self.card_count = self.mtgset['printed_size']
-        except KeyError:
-            try: self.card_count = self.mtgset['card_count']
-            except KeyError: self.card_count = ""
-        if len(str(self.card_count)) == 2:
-            self.card_count = "0" + str(self.card_count)
-        elif len(str(self.card_count)) == 1:
-            self.card_count = "00" + str(self.card_count)
-        elif len(str(self.card_count)) == 0:
-            self.card_count = None
+        # Was card count already provided?
+        if 'card_count' not in scryfall:
+            # Get set info to find card count
+            self.mtgset = scry.set_info(self.scryfall['set'])
+            try: self.card_count = self.mtgset['printed_size']
+            except KeyError or TypeError:
+                try: self.card_count = self.mtgset['card_count']
+                except KeyError or TypeError: self.card_count = ""
+            if len(str(self.card_count)) == 2:
+                self.card_count = "0" + str(self.card_count)
+            elif len(str(self.card_count)) == 1:
+                self.card_count = "00" + str(self.card_count)
+            elif len(str(self.card_count)) == 0:
+                self.card_count = None
+        else: self.card_count = scryfall['card_count']
 
         # Automatic set symbol enabled?
         if cfg.auto_symbol and self.set in con.set_symbols:
@@ -299,6 +302,8 @@ class ModalDoubleFacedLayout (BaseLayout):
         except KeyError: self.toughness = None
         try: self.color_indicator = self.scryfall['card_faces'][self.face]['color_indicator']
         except KeyError: self.color_indicator = None
+        try: self.color_indicator_other = self.scryfall['card_faces'][self.other_face]['color_indicator']
+        except KeyError: self.color_indicator_other = None
         try: self.color_identity_other = self.scryfall['card_faces'][self.other_face]['color_identity']
         except KeyError: self.color_identity_other = self.color_identity
 
@@ -314,7 +319,8 @@ class ModalDoubleFacedLayout (BaseLayout):
             self.scryfall['card_faces'][self.other_face]['mana_cost'],
             self.scryfall['card_faces'][self.other_face]['type_line'],
             self.scryfall['card_faces'][self.other_face]['oracle_text'],
-            self.color_identity_other)['twins']
+            self.color_identity_other,
+            self.color_indicator_other)['twins']
 
         # Opposite card info
         other_face_type_line_split = self.scryfall['card_faces'][self.other_face]['type_line'].split(" ")
