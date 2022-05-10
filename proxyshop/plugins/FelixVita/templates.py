@@ -409,6 +409,11 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
     # OPTIONAL
     def __init__ (self, layout):
+
+        # Right-justify citations in flavor text for all sets starting with Mirage
+        if layout.set.upper() not in pre_mirage_sets:
+            con.align_classic_quote = True
+
         super().__init__(layout)
 
         # # Overwrite the expansion symbol field text layer using custom class
