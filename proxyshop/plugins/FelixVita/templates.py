@@ -238,7 +238,7 @@ class StarterTemplate (temp.BaseTemplate):
     A BaseTemplate with a few extra features. In most cases this will be your starter template
     you want to extend for the most important functionality.
     """
-    def __init__(self, layout, file):
+    def __init__(self, layout):
         super().__init__(layout)
         try: self.is_creature = bool(self.layout.power and self.layout.toughness)
         except AttributeError: self.is_creature = False
@@ -344,7 +344,7 @@ class NormalClassicTemplate (StarterTemplate):
     def template_file_name(self): return "normal-classic"
     def template_suffix(self): return "Classic"
 
-    def __init__(self, layout, file):
+    def __init__(self, layout):
         # Collector info
         cfg.real_collector = True  # FelixVita
         cfg.cfg.real_collector = True  # FelixVita
