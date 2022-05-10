@@ -12,29 +12,48 @@ import proxyshop.helpers as psd
 import photoshop.api as ps
 app = ps.Application()
 
-pre_exodus_sets = [
-    "LEA",
-    "LEB",
-    "2ED",
-    "ARN",
-    "ATQ",
-    "3ED",
-    "LEG",
-    "DRK",
-    "FEM",
-    "4ED",
-    "ICE",
-    "CHR",
-    "HML",
-    "ALL",
-    "MIR",
-    "VIS",
-    "5ED",
-    "POR",
-    "WTH",
-    "TMP",
-    "STH",
-]
+list_of_all_mtg_sets = list(con.set_symbols.keys())
+
+pre_modern_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("8ED")]
+
+pre_mmq_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("MMQ")]
+# Mercadian Masques changed the color of the copyright/collector's info on red cards from black to white (though strangely HML had a mix of black & white).
+
+pre_exodus_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("EXO")]
+# Exodus featured a couple of important and lasting changes:
+# 1. Colored set symbols for uncommons and rares (silver & gold color)
+# 2. Artist+Collector text field at the bottom of the card is now centered (previously left-justified)
+
+pre_mirage_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("MIR")]
+# Mirage featured some changes to the frame, including but not limited to:
+# 1. Citations in flavor text are now right-justified
+# 2. The rules box of white cards is now less patterned (less contrast)
+# 3. Frame of black cards is now darker
+
+
+# pre_exodus_sets = [
+#     "LEA",
+#     "LEB",
+#     "2ED",
+#     "ARN",
+#     "ATQ",
+#     "3ED",
+#     "LEG",
+#     "DRK",
+#     "FEM",
+#     "4ED",
+#     "ICE",
+#     "CHR",
+#     "HML",
+#     "ALL",
+#     "MIR",
+#     "VIS",
+#     "5ED",
+#     "POR",
+#     "WTH",
+#     "TMP",
+#     "STH",
+# ]
 
 sets_without_set_symbol = [
     "LEA",
@@ -104,24 +123,20 @@ original_dual_lands = [
     "Tropical Island",
 ]
 
-pre_mirage_sets = [
-# Mirage featured some changes to the frame, including but not limited to:
-# 1. Citations in flavor text are now right-justified
-# 2. The rules box of white cards is now less patterned (less contrast)
-# 3. Frame of black cards is now darker
-    "LEA",
-    "LEB",
-    "2ED",
-    "ARN",
-    "ATQ",
-    "3ED",
-    "LEG",
-    "DRK",
-    "FEM",
-    "4ED",
-    "ICE",
-    "ALL",
-]
+# pre_mirage_sets = [
+#     "LEA",
+#     "LEB",
+#     "2ED",
+#     "ARN",
+#     "ATQ",
+#     "3ED",
+#     "LEG",
+#     "DRK",
+#     "FEM",
+#     "4ED",
+#     "ICE",
+#     "ALL",
+# ]
 
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
