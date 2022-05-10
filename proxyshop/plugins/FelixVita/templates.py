@@ -30,6 +30,14 @@ pre_mirage_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("MIR")]
 # 2. The rules box of white cards is now less patterned (less contrast)
 # 3. Frame of black cards is now darker
 
+pre_hml_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("HML")]
+# Homelands changed the color of the copyright/collector's info on blue cards from black to white
+
+pre_legends_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("LEG")]
+# Legends made white text (cardname, typeline, P/T) white instead of gray
+
+pre_atq_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("ATQ")]
+# Antiquities gave white frames a hint of yellow tint
 
 # pre_exodus_sets = [
 #     "LEA",
@@ -87,14 +95,16 @@ sets_lacking_symbol_stroke = [
     "ATQ",
 ]
 
-sets_with_gray_text = [
-    "LEA",
-    "LEB",
-    "2ED",
-    "ARN",
-    "ATQ",
-    "3ED",
-]
+sets_with_black_copyright_for_lands = [_ for _ in pre_mmq_sets if _ not in ["USG", "S99"]]
+
+# pre_legends_sets = [
+#     "LEA",
+#     "LEB",
+#     "2ED",
+#     "ARN",
+#     "ATQ",
+#     "3ED",
+# ]
 
 special_land_frames = {
     "ARN": "Arabian Nights",
@@ -225,7 +235,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
-            if self.setcode in sets_with_gray_text or self.setcode == "HML":
+            if self.setcode in pre_legends_sets or self.setcode == "HML":
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -233,7 +243,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             # Apply white stroke and rarity color
             mask_layer = psd.getLayer(self.rarity, self.layer.parent)
             mask_layer.visible = True
-            if self.setcode in sets_with_gray_text or self.setcode == "HML":
+            if self.setcode in pre_legends_sets or self.setcode == "HML":
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -246,7 +256,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Fill in the expansion symbol?
         if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
-            if self.setcode in sets_with_gray_text or self.setcode == "HML":
+            if self.setcode in pre_legends_sets or self.setcode == "HML":
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
             else:
                 psd.fill_expansion_symbol(self.reference, psd.rgb_white())
@@ -315,7 +325,7 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.ScaledTextField(
                 layer=name_selected,
                 text_contents=self.layout.name,
-                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.get_text_layer_color(name_selected),
+                text_color=psd.get_rgb(186, 186, 186) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
             # RetroExpansionSymbolField(
@@ -336,7 +346,7 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
                 text_contents=self.layout.type_line,
-                text_color=psd.get_rgb(186, 186, 186) if setcode in sets_with_gray_text else psd.get_text_layer_color(type_line_selected),
+                text_color=psd.get_rgb(186, 186, 186) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
                 reference_layer=expansion_symbol
             ),
         ])
@@ -405,7 +415,7 @@ class NormalClassicTemplate (StarterTemplate):
                 txt_layers.TextField(
                     layer=power_toughness,
                     text_contents=str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in sets_with_gray_text else psd.get_text_layer_color(power_toughness)
+                    text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
                 )
             )
         else: power_toughness.visible = False
@@ -464,9 +474,12 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         Format and add the collector info at the bottom.
         """
 
+        setcode = self.layout.set.upper()
+        color = self.layout.background
+
         legal_layer = psd.getLayerSet(con.layers['LEGAL'])
-        # if self.layout.set.upper() in sets_with_gray_text:
-        if self.layout.set.upper() in pre_exodus_sets:
+        # if setcode in sets_with_gray_text:
+        if setcode in pre_exodus_sets:
             # Hide set & artist layers; and reveal left-justified ones
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
@@ -474,13 +487,19 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             legal_layer.visible = True
 
         # Color the set info black if card is white (or color it gray for some really old sets)
-        if self.layout.background == "W":
-            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
-        elif self.layout.set.upper() in sets_with_gray_text:
+        print(f"{color=}")
+        if setcode in pre_legends_sets:
             psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
+        elif (
+            (color == "W") or
+            (color == "R" and setcode in pre_mmq_sets) or
+            (color == "U" and setcode in pre_hml_sets) or
+            (color == "Land" and setcode not in sets_with_black_copyright_for_lands) or  # TODO: Check if "Land" is the correct term here for Land cards
+            (color == "Gold" and setcode in pre_mirage_sets)):  # TODO: Check if "Gold" is the correct term here for multicolor cards
+                psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
 
         # Color artist info grey if appropriate
-        if self.layout.set.upper() in sets_with_gray_text:
+        if setcode in pre_legends_sets:
             psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
 
 
@@ -549,13 +568,14 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("LEA-LEB Box Hue", red_group).visible = True
             psd.getLayer("LEA-LEB Hue", red_group).visible = True
             psd.getLayer("LEA-LEB Color Balance", red_group).visible = True
-        elif setcode in ["LEA", "LEB"] and self.layout.scryfall['colors'] == ["W"]:
+        elif setcode in pre_exodus_sets and self.layout.scryfall['colors'] == ["W"]:
             white_group = psd.getLayerSet("W", "Nonland")
             psd.getLayer("LEA-LEB - Box Levels", white_group).visible = True
             psd.getLayer("LEA-LEB - Box Hue/Saturation", white_group).visible = True
-            psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
-            psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
-            psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
+            if setcode in pre_atq_sets:
+                psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
+                psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
+                psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
         if "Flashback" in self.layout.keywords:
             psd.getLayer("Tombstone").visible = True
 
