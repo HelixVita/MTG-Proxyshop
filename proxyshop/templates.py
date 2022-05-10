@@ -191,7 +191,7 @@ class BaseTemplate:
         else: file_name = self.layout.name
 
         # FelixVita
-        original_file_path = Path(self.file)
+        original_file_path = Path(self.layout.file)
         original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
         suffix_enabled = False
         file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
