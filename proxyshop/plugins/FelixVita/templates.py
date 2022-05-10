@@ -239,7 +239,7 @@ class StarterTemplate (temp.BaseTemplate):
     you want to extend for the most important functionality.
     """
     def __init__(self, layout, file):
-        super().__init__(layout, file)
+        super().__init__(layout)
         try: self.is_creature = bool(self.layout.power and self.layout.toughness)
         except AttributeError: self.is_creature = False
         try: self.is_legendary = bool(self.layout.type_line.find("Legendary") >= 0)
@@ -349,7 +349,7 @@ class NormalClassicTemplate (StarterTemplate):
         cfg.real_collector = True  # FelixVita
         cfg.cfg.real_collector = True  # FelixVita
         if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
-        super().__init__(layout, file)
+        super().__init__(layout)
         self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
 
         # Basic text
@@ -404,8 +404,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         return "Retro-1997"
 
     # OPTIONAL
-    def __init__ (self, layout, file):
-        super().__init__(layout, file)
+    def __init__ (self, layout):
+        super().__init__(layout)
         # Overwrite the expansion symbol field text layer using custom class
         setcode = layout.set.upper()
         text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
