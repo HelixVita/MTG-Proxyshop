@@ -486,30 +486,38 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             legal_layer = psd.getLayerSet("Left-Justified", con.layers['LEGAL'])
             legal_layer.visible = True
 
-        # Color the set info black if card is white (or color it gray for some really old sets)
+        # Artist layer & set/copyright/collector info layer
+        collector_layer = psd.getLayer(con.layers['SET'], legal_layer)
+        artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
+
+        # Color the artist info gray for old cards
+        if setcode in pre_legends_sets:
+            artist_layer.textItem.color = psd.get_rgb(186, 186, 186)  # Gray
+
+        # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
+        psd.replace_text(artist_layer, "Artist", self.layout.artist)
+
+        # Some cards have black or gray collector's info instead of white. The logic for this is roughly thus:
         print(f"{color=}")
+        app.activeDocument.activeLayer = collector_layer
         if color == "W":
-            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
+            collector_layer.textItem.color = psd.rgb_black()
+            psd.apply_stroke(1, psd.rgb_black())
         elif setcode in pre_legends_sets:
-            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)  # Gray
+            collector_layer.textItem.color = psd.get_rgb(186, 186, 186)  # Gray
+            psd.apply_stroke(1, psd.get_rgb(186, 186, 186))
         elif (
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
             (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
             (color == "Land" and setcode not in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
             ):
-            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
-
-        # Color artist info grey if appropriate
-        if setcode in pre_legends_sets:
-            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)  # Gray
-
-        # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
-        artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
-        psd.replace_text(artist_layer, "Artist", self.layout.artist)
+            collector_layer.textItem.color = psd.rgb_black()
+            psd.apply_stroke(1, psd.rgb_black())
+        else:
+            psd.apply_stroke(1, psd.get_rgb(238, 238, 238))  # White (#EEEEEE)
 
         # Fill in detailed collector info, if available ("SET • 999/999 C" --> "ABC • 043/150 R")
-        collector_layer = psd.getLayer(con.layers['SET'], legal_layer)
         collector_layer.visible = True
 
         # Try to obtain release year
@@ -520,7 +528,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
         # Conditionally build up the collector info string (leaving out any unavailable info)
         collector_string = ""
-        collector_string += "Proxy, Not for Sale — "
+        collector_string += "Proxy • Not for Sale — "
         collector_string += f"{self.layout.set} • "
         if not cfg.real_collector:
             collector_string += "EN"
