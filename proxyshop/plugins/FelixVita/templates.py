@@ -535,7 +535,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         else:
             collector_string += f"{release_year} • " if release_year else ""
             collector_string += str(self.layout.collector_number).lstrip("0")
-            collector_string += f"/{self.layout.card_count}" if self.layout.card_count else ""
+            collector_string += "/" + str(self.layout.card_count).lstrip("0") if self.layout.card_count else ""
             collector_string += f" {self.layout.rarity_letter}" if self.layout.rarity else ""
 
         # Apply the collector info
@@ -582,6 +582,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("LEA-LEB - Box Levels", white_group).visible = True
             psd.getLayer("LEA-LEB - Box Hue/Saturation", white_group).visible = True
             if setcode in pre_atq_sets:
+                psd.getLayer("LEA-LEB - Box Trim Hue", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
