@@ -488,20 +488,21 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
         # Color the set info black if card is white (or color it gray for some really old sets)
         print(f"{color=}")
-        if setcode in pre_legends_sets:
-            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
+        if color == "W":
+            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
+        elif setcode in pre_legends_sets:
+            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)  # Gray
         elif (
-            (color == "W") or
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
-            (color == "Land" and setcode not in sets_with_black_copyright_for_lands) or  # TODO: Check if "Land" is the correct term here for Land cards
-            (color == "Gold" and setcode in pre_mirage_sets)):  # TODO: Check if "Gold" is the correct term here for multicolor cards
-                psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
+            (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
+            (color == "Land" and setcode not in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
+            ):
+            psd.getLayer(con.layers['SET'], legal_layer).textItem.color = psd.rgb_black()
 
         # Color artist info grey if appropriate
         if setcode in pre_legends_sets:
-            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)
-
+            psd.getLayer(con.layers['ARTIST'], legal_layer).textItem.color = psd.get_rgb(186, 186, 186)  # Gray
 
         # Fill in artist info ("Illus. Artist" --> "Illus. Pablo Picasso")
         artist_layer = psd.getLayer(con.layers['ARTIST'], legal_layer)
