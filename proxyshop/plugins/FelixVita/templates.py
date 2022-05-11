@@ -544,7 +544,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("WhiteBorder").visible = True
         elif border_color == 'black':
             if self.layout.scryfall['colors'] == ["B"]:
-                psd.getLayer("Brighter Left & Bottom Frame Bevels", "Nonland").visible = True  # TODO: Fix this since it is probably what is causing "Oppression" to fail.
+                psd.getLayer("Brighter Left & Bottom Frame Bevels", "Nonland").visible = True
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
         if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
