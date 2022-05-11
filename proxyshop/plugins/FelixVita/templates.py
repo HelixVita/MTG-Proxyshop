@@ -215,7 +215,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode == "STH" else 100
+            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode == "STH" else 125 if self.setcode == "ARN" else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
