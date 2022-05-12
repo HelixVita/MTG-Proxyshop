@@ -223,7 +223,12 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         # Symbol stroke size (thickness)
         symbol_stroke_size = cfg.cfg.symbol_stroke
         # Special cases
-        if self.setcode == "DRK" and self.background == "B": symbol_stroke_size = 2
+        nostroke = False
+        if self.setcode == "DRK":
+            if self.background == "B":
+                symbol_stroke_size = 2
+            else:
+                nostroke = True
         elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
 
         # Make RetroExpansionGroup the active layer
@@ -232,11 +237,12 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         app.activeDocument.activeLayer = retro_expansion_group
 
         # Apply set symbol stroke (white/black) and rarity color (silver/gold/mythic)
-        if self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
+        if nostroke or self.setcode in sets_lacking_symbol_stroke: pass  # Apply neither
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
-            if self.setcode in pre_legends_sets or self.setcode == "HML":
-                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(186, 186, 186))
+            if self.setcode in pre_legends_sets or self.setcode in ["HML", "MIR"]:  # TODO: Verify if this is better for MIR than white
+                val = 204 if self.setcode == "MIR" else 186
+                psd.apply_stroke(symbol_stroke_size, psd.get_rgb(val, val, val))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
         else:
@@ -510,7 +516,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
             (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
-            (color == "Land" and setcode not in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
+            (color == "Land" and setcode in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
             ):
             collector_layer.textItem.color = psd.rgb_black()
             psd.apply_stroke(1, psd.rgb_black())
@@ -582,7 +588,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("LEA-LEB - Box Levels", white_group).visible = True
             psd.getLayer("LEA-LEB - Box Hue/Saturation", white_group).visible = True
             if setcode in pre_atq_sets:
-                psd.getLayer("LEA-LEB - Box Trim Hue", white_group).visible = True
+                # psd.getLayer("LEA-LEB - Box Trim Hue", white_group).visible = True  # TODO: Remove from PSD template -- it just doesn't look good
                 psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
@@ -640,6 +646,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             elif is_dual:
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
                     # ABUR Duals (with the classic 'cascading squares' design in the rules box)
+                    layers_to_unhide.append((thicker_trim_stroke, modifications, land))
                     abur_combined_groups = ["WU, UB, UR", "GU, BG, RG, GW"]
                     use_combined_group = None
                     for abur_group in abur_combined_groups:
@@ -658,6 +665,12 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                         abur_second_color = "R" if pinlines in ["RW", "BR"] else "B"
                         groups_to_unhide.append((selected_abur_group, abur, land))
                         layers_to_unhide.append((abur_second_color, abur, land))
+                elif setcode in ["TMP", "JUD"]:
+                    # Dual lands without colored box, i.e. same box as colorless lands like Crystal Quarry. -- Examples: "Caldera Lake (TMP)", "Riftstone Portal (JUD)"
+                    layers_to_unhide.append((land, wholes, land))
+                    groups_to_unhide.append((neutral_land_frame_color, wholes, land))
+                    layers_to_unhide.append((thickest_trim_stroke, modifications, land))
+                    # pass  # TODO: Make sure this results in "Crystal Quarry" type frame for TMP and JUD duals like "Caldera Lake" and "Riftstone Portal"
                 else:
                     # Regular duals (vertically split half-n-half color) -- Examples: Adarkar Wastes (6ED)
                     left_half = pinlines[0]
