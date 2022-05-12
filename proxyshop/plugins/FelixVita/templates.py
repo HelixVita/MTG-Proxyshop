@@ -39,30 +39,6 @@ pre_legends_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("LEG")]
 pre_atq_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("ATQ")]
 # Antiquities gave white frames a hint of yellow tint
 
-# pre_exodus_sets = [
-#     "LEA",
-#     "LEB",
-#     "2ED",
-#     "ARN",
-#     "ATQ",
-#     "3ED",
-#     "LEG",
-#     "DRK",
-#     "FEM",
-#     "4ED",
-#     "ICE",
-#     "CHR",
-#     "HML",
-#     "ALL",
-#     "MIR",
-#     "VIS",
-#     "5ED",
-#     "POR",
-#     "WTH",
-#     "TMP",
-#     "STH",
-# ]
-
 sets_without_set_symbol = [
     "LEA",
     "LEB",
@@ -97,15 +73,6 @@ sets_lacking_symbol_stroke = [
 
 sets_with_black_copyright_for_lands = [_ for _ in pre_mmq_sets if _ not in ["USG", "S99"]]
 
-# pre_legends_sets = [
-#     "LEA",
-#     "LEB",
-#     "2ED",
-#     "ARN",
-#     "ATQ",
-#     "3ED",
-# ]
-
 special_land_frames = {
     "ARN": "Arabian Nights",
     "ATQ": "Antiquities",
@@ -133,25 +100,10 @@ original_dual_lands = [
     "Tropical Island",
 ]
 
-# pre_mirage_sets = [
-#     "LEA",
-#     "LEB",
-#     "2ED",
-#     "ARN",
-#     "ATQ",
-#     "3ED",
-#     "LEG",
-#     "DRK",
-#     "FEM",
-#     "4ED",
-#     "ICE",
-#     "ALL",
-# ]
-
-all_keyrune_pre_eighth_symbols_for_debugging = ""
-
 # Overwrite constants
 con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+
+all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 
 def unhide(psdpath: tuple, is_group=False):
@@ -215,7 +167,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode == "STH" else 125 if self.setcode == "ARN" else 100
+            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode in ["STH", "TMP"] else 108 if self.setcode in ["USG", "EXO"] else 125 if self.setcode in ["ARN"] else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
@@ -229,7 +181,8 @@ class RetroExpansionSymbolField (txt_layers.TextField):
                 symbol_stroke_size = 2
             else:
                 nostroke = True
-        elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
+        elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 4)
+        elif self.setcode == "TMP": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
 
         # Make RetroExpansionGroup the active layer
         text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
@@ -241,7 +194,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         elif self.rarity == con.rarity_common or self.is_pre_exodus:
             # Apply white stroke only
             if self.setcode in pre_legends_sets or self.setcode in ["HML", "MIR"]:  # TODO: Verify if this is better for MIR than white
-                val = 204 if self.setcode == "MIR" else 186
+                val = 212 if self.setcode == "MIR" else 186
                 psd.apply_stroke(symbol_stroke_size, psd.get_rgb(val, val, val))
             else:
                 psd.apply_stroke(symbol_stroke_size, psd.rgb_white())
@@ -334,21 +287,6 @@ class StarterTemplate (temp.BaseTemplate):
                 text_color=psd.get_rgb(186, 186, 186) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
-            # RetroExpansionSymbolField(
-            #     layer = expansion_symbol,
-            #     text_contents = self.layout.symbol,
-            #     rarity = self.layout.rarity,
-            #     reference = expansion_reference,
-            #     is_pre_exodus = is_pre_exodus,
-            #     has_hollow_set_symbol = has_hollow_set_symbol,
-            #     setcode = setcode
-            #     ),
-            # txt_layers.ExpansionSymbolField(
-            #     layer=expansion_symbol,
-            #     text_contents=self.layout.symbol,
-            #     rarity=self.layout.rarity,
-            #     reference=expansion_reference
-            # ),
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
                 text_contents=self.layout.type_line,
@@ -362,7 +300,7 @@ class StarterTemplate (temp.BaseTemplate):
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    text_contents = self.layout.symbol,
+                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out.
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -447,33 +385,6 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
         super().__init__(layout)
 
-        # # Overwrite the expansion symbol field text layer using custom class
-        # setcode = layout.set.upper()
-        # text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
-        # retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
-        # expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)
-        # try: expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
-        # except: expansion_reference = None
-
-        # # Disable RetroExpansionSymbolField for Alliances cards
-        # if setcode in sets_without_set_symbol or setcode == "ALL":
-        #     for i, layer in enumerate(self.tx_layers):
-        #         if isinstance(layer, RetroExpansionSymbolField): del self.tx_layers[i]
-
-        # for i, layer in enumerate(self.tx_layers):
-        #     if isinstance(layer, txt_layers.ExpansionSymbolField):
-        #         if setcode in sets_without_set_symbol:
-        #             del self.tx_layers[i]
-        #         else:
-        #             self.tx_layers[i] = RetroExpansionSymbolField(
-        #                 layer = expansion_symbol,
-        #                 text_contents = self.layout.symbol,
-        #                 rarity = self.layout.rarity,
-        #                 reference = expansion_reference,
-        #                 is_pre_exodus = setcode in pre_exodus_sets,
-        #                 has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol,
-        #                 setcode = setcode
-        #             )
 
     def collector_info(self):
         """
@@ -506,13 +417,9 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         # Some cards have black or gray collector's info instead of white. The logic for this is roughly thus:
         print(f"{color=}")
         app.activeDocument.activeLayer = collector_layer
-        if color == "W":
-            collector_layer.textItem.color = psd.rgb_black()
-            psd.apply_stroke(1, psd.rgb_black())
-        elif setcode in pre_legends_sets:
-            collector_layer.textItem.color = psd.get_rgb(186, 186, 186)  # Gray
-            psd.apply_stroke(1, psd.get_rgb(186, 186, 186))
-        elif (
+        if (
+            (setcode in pre_legends_sets) or
+            (color == "W") or
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
             (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
@@ -643,7 +550,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                         groups_to_unhide.append((pinlines, wholes, land))
                         layers_to_unhide.append(("Trim - VIS", modifications, land))
 
-            elif is_dual:
+            elif is_dual and setcode not in ["TMP", "JUD"]:
+            # TMP and JUD are excluded here because those dual lands instead have the same box as colorless lands like Crystal Quarry. -- Examples: "Caldera Lake (TMP)", "Riftstone Portal (JUD)"
                 if cardname in original_dual_lands or setcode in ["LEA", "LEB", "2ED", "3ED"]:
                     # ABUR Duals (with the classic 'cascading squares' design in the rules box)
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
@@ -665,14 +573,9 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                         abur_second_color = "R" if pinlines in ["RW", "BR"] else "B"
                         groups_to_unhide.append((selected_abur_group, abur, land))
                         layers_to_unhide.append((abur_second_color, abur, land))
-                elif setcode in ["TMP", "JUD"]:
-                    # Dual lands without colored box, i.e. same box as colorless lands like Crystal Quarry. -- Examples: "Caldera Lake (TMP)", "Riftstone Portal (JUD)"
-                    layers_to_unhide.append((land, wholes, land))
-                    groups_to_unhide.append((neutral_land_frame_color, wholes, land))
-                    layers_to_unhide.append((thickest_trim_stroke, modifications, land))
-                    # pass  # TODO: Make sure this results in "Crystal Quarry" type frame for TMP and JUD duals like "Caldera Lake" and "Riftstone Portal"
                 else:
                     # Regular duals (vertically split half-n-half color) -- Examples: Adarkar Wastes (6ED)
+                    # TODO: Make sure this does in fact result in "Crystal Quarry" type frame for TMP and JUD duals like "Caldera Lake" and "Riftstone Portal"
                     left_half = pinlines[0]
                     right_half = pinlines[1]
                     layers_to_unhide.append((land, wholes, land))
@@ -682,8 +585,10 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                     groups_to_unhide.append((thicker_bevels_rules_box, modifications, land))
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
 
-            elif is_mono:
+            elif is_mono and cardname != "Phyrexian Tower":
                     # Monocolored lands with colored rules box -- Examples: Rushwood Grove (MMQ), Spawning Pool (ULG)
+                    # Phyrexian Tower is excluded because it has the colorless land frame despite producing only black mana (not sure why).
+                    # TODO: Test to make sure phyrex does indeed render with the colorless land frame
                     layers_to_unhide.append((land, wholes, land))
                     groups_to_unhide.append((neutral_land_frame_color, wholes, land))
                     groups_to_unhide.append((pinlines, wholes, land))
