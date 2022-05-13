@@ -100,9 +100,6 @@ original_dual_lands = [
     "Tropical Island",
 ]
 
-# Overwrite constants
-con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
-
 all_keyrune_pre_eighth_symbols_for_debugging = ""
 
 
@@ -167,7 +164,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
 
         # Size to fit reference?
         if cfg.cfg.auto_symbol_size:
-            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode in ["STH", "TMP"] else 108 if self.setcode in ["USG", "EXO"] else 125 if self.setcode in ["ARN"] else 100
+            scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode in ["STH", "TMP", "PTK"] else 108 if self.setcode in ["USG", "EXO"] else 125 if self.setcode in ["ARN"] else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
@@ -183,10 +180,12 @@ class RetroExpansionSymbolField (txt_layers.TextField):
                 nostroke = True
         elif self.setcode == "EXO": symbol_stroke_size = str(int(symbol_stroke_size) + 4)
         elif self.setcode == "TMP": symbol_stroke_size = str(int(symbol_stroke_size) + 2)
+        elif self.setcode == "PTK": symbol_stroke_size = 15
 
         # Make RetroExpansionGroup the active layer
         text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
-        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)
+        retro_expansion_group_outer = psd.getLayerSet("OuterRetroExpansionGroup", text_and_icons)
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", retro_expansion_group_outer)
         app.activeDocument.activeLayer = retro_expansion_group
 
         # Apply set symbol stroke (white/black) and rarity color (silver/gold/mythic)
@@ -219,6 +218,11 @@ class RetroExpansionSymbolField (txt_layers.TextField):
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
             else:
                 psd.fill_expansion_symbol(self.reference, psd.rgb_white())
+
+        # The PTK expansion symbol features an additional thin outer black stroke. (This is the only reason the "OuterRetroExpansionGroup" layer exists in this template).
+        if self.setcode == "PTK":
+            app.activeDocument.activeLayer = retro_expansion_group_outer
+            psd.apply_stroke(5, psd.rgb_black())
 
 
 class StarterTemplate (temp.BaseTemplate):
@@ -265,7 +269,8 @@ class StarterTemplate (temp.BaseTemplate):
         # Mana, expansion
         mana_cost = psd.getLayer(con.layers['MANA_COST'], text_and_icons)
         # expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], text_and_icons)
-        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", text_and_icons)          # FelixVita
+        retro_expansion_group_outer = psd.getLayerSet("OuterRetroExpansionGroup", text_and_icons)  # FelixVita
+        retro_expansion_group = psd.getLayerSet("RetroExpansionGroup", retro_expansion_group_outer)  # FelixVita
         expansion_symbol = psd.getLayer(con.layers['EXPANSION_SYMBOL'], retro_expansion_group)  # FelixVita: Changed in order to make stroke + innershadow work.
         expansion_reference = psd.getLayer(con.layers['EXPANSION_REFERENCE'], text_and_icons)
 
@@ -273,6 +278,14 @@ class StarterTemplate (temp.BaseTemplate):
         setcode = self.layout.set.upper()
         is_pre_exodus = setcode in pre_exodus_sets
         has_hollow_set_symbol = setcode in sets_with_hollow_set_symbol
+
+        # Misc gray hues for gray text sets (pre-legends)
+        leg_gray = (186, 186, 186)
+        arn_gray = (195, 200, 205)
+        if setcode == "LEG":
+            gray = leg_gray
+        elif setcode == "ARN":
+            gray = arn_gray
 
         # Add text layers
         self.tx_layers.extend([
@@ -284,13 +297,13 @@ class StarterTemplate (temp.BaseTemplate):
             txt_layers.ScaledTextField(
                 layer=name_selected,
                 text_contents=self.layout.name,
-                text_color=psd.get_rgb(186, 186, 186) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
+                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
                 text_contents=self.layout.type_line,
-                text_color=psd.get_rgb(186, 186, 186) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
+                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
                 reference_layer=expansion_symbol
             ),
         ])
@@ -354,11 +367,19 @@ class NormalClassicTemplate (StarterTemplate):
 
         # Add creature text layers
         power_toughness = psd.getLayer(con.layers['POWER_TOUGHNESS'], text_and_icons)
+        space = ""
         if self.is_creature:
+            if self.layout.set.upper() in ["POR", "P02", "PTK"]:
+                space = "  "
+                power_toughness.visible = False
+                sword_and_shield_group = psd.getLayer("Sword & Shield", text_and_icons)
+                sword_and_shield_group.visible = True
+                power_toughness = psd.getLayer(con.layers['POWER_TOUGHNESS'], sword_and_shield_group)
+
             self.tx_layers.append(
                 txt_layers.TextField(
                     layer=power_toughness,
-                    text_contents=str(self.layout.power) + "/" + str(self.layout.toughness),
+                    text_contents=str(self.layout.power) + space + "/" + str(self.layout.toughness) + space,
                     text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
                 )
             )
@@ -378,10 +399,16 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
     # OPTIONAL
     def __init__ (self, layout):
+        con.font_rules_text = "MPlantin-Bold"
+
+        # Use alternate expansion symbol for
+        con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
 
         # Right-justify citations in flavor text for all sets starting with Mirage
         if layout.set.upper() not in pre_mirage_sets:
             con.align_classic_quote = True
+        if layout.set.upper() in ["POR", "P02", "PTK"]:
+            con.font_rules_text = "MPlantin-Bold"
 
         super().__init__(layout)
 
@@ -396,7 +423,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
         legal_layer = psd.getLayerSet(con.layers['LEGAL'])
         # if setcode in sets_with_gray_text:
-        if setcode in pre_exodus_sets:
+        if setcode in pre_exodus_sets or setcode in ["P02", "PTK"]:
             # Hide set & artist layers; and reveal left-justified ones
             psd.getLayer(con.layers['SET'], legal_layer).visible = False
             psd.getLayer(con.layers['ARTIST'], legal_layer).visible = False
@@ -470,7 +497,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         # Hide set symbol for any cards from sets LEA, LEB, 2ED, 3ED, 4ED, and 5ED.
         if setcode in sets_without_set_symbol or setcode == "ALL":
             text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
-            psd.getLayerSet("RetroExpansionGroup", text_and_icons).visible = False
+            psd.getLayerSet("OuterRetroExpansionGroup", text_and_icons).visible = False
         if setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["B"]:
             black_group = psd.getLayerSet("B", "Nonland")
             psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
