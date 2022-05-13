@@ -399,14 +399,15 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
 
     # OPTIONAL
     def __init__ (self, layout):
-        con.font_rules_text = "MPlantin-Bold"
 
-        # Use alternate expansion symbol for
+        # Use alternate expansion symbol for ICE
         con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
 
         # Right-justify citations in flavor text for all sets starting with Mirage
         if layout.set.upper() not in pre_mirage_sets:
             con.align_classic_quote = True
+
+        # Use bold rules text for Portal sets:
         if layout.set.upper() in ["POR", "P02", "PTK"]:
             con.font_rules_text = "MPlantin-Bold"
 
