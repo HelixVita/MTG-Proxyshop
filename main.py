@@ -131,6 +131,8 @@ class ProxyshopApp(App):
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
 			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
 		]
 		from pathlib import Path
 		for artdir in other_art_folders:
