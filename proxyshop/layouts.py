@@ -101,11 +101,18 @@ class BaseLayout:
             self.symbol = con.set_symbols[self.set]
         else: self.symbol = cfg.symbol_char
 
+
         # Optional vars
         if 'keywords' in self.scryfall: self.keywords = self.scryfall['keywords']
         else: self.keywords = []
         if 'frame_effects' in self.scryfall: self.frame_effects = self.scryfall['frame_effects']
         else: self.frame_effects = []
+
+        print(f"---- Inspect vars at end of BaseLayout.__init__ --- {__file__=}")  # DEBUG
+        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        print(f"{con.align_classic_quote}")  # DEBUG
+        print(f"{con.font_rules_text}")  # DEBUG
+        print(f"{self.symbol=}")
 
     def frame_logic(self):
         """

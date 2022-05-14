@@ -281,6 +281,11 @@ def format_text(input_string, italics_strings, flavor_index, is_centered):
     # Locate italics text indices
     italics_indices = locate_italics(input_string, italics_strings)
 
+    print(f"-----Inspect variables in format_text.py ----  {__file__=}")  # DEBUG
+    print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+    print(f"{con.align_classic_quote}")  # DEBUG
+    print(f"{con.font_rules_text}")  # DEBUG
+
     # Prepare action descriptor and reference variables
     layer_font_size = app.activeDocument.activeLayer.textItem.size
     layer_text_color = app.activeDocument.activeLayer.textItem.color

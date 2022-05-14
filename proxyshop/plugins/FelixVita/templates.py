@@ -310,12 +310,19 @@ class StarterTemplate (temp.BaseTemplate):
             ),
         ])
 
+        print(f"---- Inspect values before adding expansion symbol field --- {__class__=} {__file__=}")  # DEBUG
+        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        print(f"{con.align_classic_quote}")  # DEBUG
+        print(f"{con.font_rules_text}")  # DEBUG
+        print(f"{self.layout.symbol=}")
+
         # Add expansion symbol field
         if setcode not in sets_without_set_symbol and setcode != "ALL":
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                    text_contents = self.layout.symbol,
+                    # text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -402,17 +409,46 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
     # OPTIONAL
     def __init__ (self, layout):
 
-        # # Use alternate expansion symbol for ICE
-        # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
-        # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
+        # DEBUG
+        print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
+        print(f"{__class__=} {__file__=}")  # DEBUG")
+        print(f"===== Variables to print =====")  # DEBUG
+        print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
+        print("con.align_classic_quote")  # DEBUG
+        print("con.font_rules_text")  # DEBUG
+        print("(other)")  # DEBUG
+        print(f"===== Previous/initial values =====")  # DEBUG
+        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        print(f"{con.align_classic_quote}")  # DEBUG
+        print(f"{con.font_rules_text}")  # DEBUG
 
-        # # Right-justify citations in flavor text for all sets starting with Mirage
-        # if layout.set.upper() not in pre_mirage_sets:
-        #     con.align_classic_quote = True
+        # Use alternate expansion symbol for ICE
+        if layout.set.upper() == "ICE":
+            con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+            # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
 
-        # # Use bold rules text for Portal sets:
-        # if layout.set.upper() in ["POR", "P02", "PTK"]:
-        #     con.font_rules_text = "MPlantin-Bold"
+        # Right-justify citations in flavor text for all sets starting with Mirage
+        if layout.set.upper() not in pre_mirage_sets:
+            con.align_classic_quote = True
+
+        # Use bold rules text for the 3 Portal sets + S99:
+        if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
+            con.font_rules_text = "MPlantin-Bold"
+
+        # DEBUG
+        print(f"===== EXPECTED new values ====")  # DEBUG
+        expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
+        expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
+        expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
+        print(f"{expected_ice_symb}")  # DEBUG
+        print(f"{expected_align_bool}")  # DEBUG
+        print(f"{expected_rules_font}")  # DEBUG
+
+        # DEBUG
+        print(f"===== ACTUAL new values ====")  # DEBUG
+        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        print(f"{con.align_classic_quote}")  # DEBUG
+        print(f"{con.font_rules_text}")  # DEBUG
 
         super().__init__(layout)
 
@@ -446,7 +482,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         psd.replace_text(artist_layer, "Artist", self.layout.artist)
 
         # Some cards have black or gray collector's info instead of white. The logic for this is roughly thus:
-        print(f"{color=}")
+        # print(f"{color=}")
         app.activeDocument.activeLayer = collector_layer
         if (
             (setcode in pre_legends_sets) or
@@ -491,7 +527,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         border_color = self.layout.scryfall['border_color']
         setcode = self.layout.set.upper()
         cardname = self.layout.scryfall['name']
-        print(f"{cardname=}")
+        # print(f"{cardname=}")
         # Enable white border if scryfall says card border is white
         if border_color == 'white':
             psd.getLayer("WhiteBorder").visible = True
