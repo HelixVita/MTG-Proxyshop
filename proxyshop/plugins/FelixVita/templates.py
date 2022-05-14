@@ -315,7 +315,7 @@ class StarterTemplate (temp.BaseTemplate):
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out.
+                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -402,16 +402,17 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
     # OPTIONAL
     def __init__ (self, layout):
 
-        # Use alternate expansion symbol for ICE
-        con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+        # # Use alternate expansion symbol for ICE
+        # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+        # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
 
-        # Right-justify citations in flavor text for all sets starting with Mirage
-        if layout.set.upper() not in pre_mirage_sets:
-            con.align_classic_quote = True
+        # # Right-justify citations in flavor text for all sets starting with Mirage
+        # if layout.set.upper() not in pre_mirage_sets:
+        #     con.align_classic_quote = True
 
-        # Use bold rules text for Portal sets:
-        if layout.set.upper() in ["POR", "P02", "PTK"]:
-            con.font_rules_text = "MPlantin-Bold"
+        # # Use bold rules text for Portal sets:
+        # if layout.set.upper() in ["POR", "P02", "PTK"]:
+        #     con.font_rules_text = "MPlantin-Bold"
 
         super().__init__(layout)
 
