@@ -286,6 +286,8 @@ class StarterTemplate (temp.BaseTemplate):
             gray = leg_gray
         elif setcode == "ARN":
             gray = arn_gray
+        else:
+            gray = leg_gray
 
         # Add text layers
         self.tx_layers.extend([
