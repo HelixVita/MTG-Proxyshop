@@ -194,10 +194,14 @@ class BaseTemplate:
         # Save render using same name as the art file
         original_file_path = Path(self.layout.file)
         original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
+        # Save file in a subfolder in out? (like "out/mySubfolder")
+        out_subfolder_enabled = False
+        out_subfolder = "cube"
         # Use a template name suffix?
         suffix_enabled = False
         file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
-        file_name = f"{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"
+        out_subfolder = out_subfolder if out_subfolder_enabled else ""
+        file_name = f"{out_subfolder}/{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"
         # Use a reprint suffix?
         reprint_suffix_enabled = True
         reprint_suffix = " [REPRINT]" if self.layout.scryfall['reprint'] else ""

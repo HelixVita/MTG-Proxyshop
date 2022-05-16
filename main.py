@@ -122,6 +122,11 @@ class ProxyshopApp(App):
 
 
 		# ========== FelixVita code changes ============================================================================
+		from pathlib import Path
+		out_folder = "out"
+		# out_folder = os.path.join("out", "cube")
+		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
+
 		# FelixVita - Also get art from other location(s)
 		other_art_folders = [
 			# os.path.join(cwd, "art"),
@@ -130,17 +135,17 @@ class ProxyshopApp(App):
 			# os.path.join(cwd, "..\\xinntao\\Real-ESRGAN\\results-godkjent"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
-			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
-			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
+			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
 		]
-		from pathlib import Path
+		# Iterate through art folders
 		for artdir in other_art_folders:
 			subfolders = os.listdir(artdir)
+			# Create subfolders in out_folder if they don't exist
 			for subfolder in subfolders:
-				Path(os.path.join(cwd, "out", subfolder)).mkdir(mode=511, parents=True, exist_ok=True)  # Create subfolder in "out" folder
-
-			extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
+				Path(os.path.join(cwd, out_folder, subfolder)).mkdir(mode=511, parents=True, exist_ok=True)
+			# In each art folder, add all art files to the list of files
 			for ext in extensions:
 				files.extend(glob(os.path.join(artdir,"**", ext)))
 
@@ -154,8 +159,8 @@ class ProxyshopApp(App):
 		already_rendered_cards = []
 		for artdir in other_art_folders:
 			for subfolder in os.listdir(artdir):
-				already_rendered_cards.extend([Path(_).name for _ in glob(os.path.join(cwd, "out", subfolder, "*"))])
-		if not rerender_all: files = [_ for _ in files if Path(_).name not in already_rendered_cards]
+				already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
+		if not rerender_all: files = [_ for _ in files if Path(_).stem not in already_rendered_cards]
 		# ======= End of FelixVita code changes ===========================================================================
 
 
