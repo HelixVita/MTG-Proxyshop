@@ -1,13 +1,11 @@
 """
 FelixVita TEMPLATES
 """
-import os
-import proxyshop.frame_logic as frame_logic
-import proxyshop.format_text as format_text
+# from proxyshop import format_text
 import proxyshop.text_layers as txt_layers
 import proxyshop.templates as temp
-import proxyshop.constants as con
-import proxyshop.settings as cfg
+from proxyshop.constants import con
+from proxyshop.settings import cfg
 import proxyshop.helpers as psd
 import photoshop.api as ps
 app = ps.Application()
