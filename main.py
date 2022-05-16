@@ -161,6 +161,11 @@ class ProxyshopApp(App):
 			for subfolder in os.listdir(artdir):
 				already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
 		if not rerender_all: files = [_ for _ in files if Path(_).stem not in already_rendered_cards]
+
+		# Print files to terminal
+		print("Final list of files for rendering:")
+		for _ in files:
+			print(_)
 		# ======= End of FelixVita code changes ===========================================================================
 
 
