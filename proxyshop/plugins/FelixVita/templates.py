@@ -441,19 +441,16 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             print(f"===== Conditions triggered =====")  # DEBUG
             # Use alternate expansion symbol for ICE
             if layout.set.upper() == "ICE":
-                # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+                con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
                 # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
-                setattr(con, "set_symbols['ICE']", "")
                 print(1)
             # Right-justify citations in flavor text for all sets starting with Mirage
             if layout.set.upper() not in pre_mirage_sets:
-                # con.align_classic_quote = True
-                setattr(con, 'align_classic_quote', True)
+                con.align_classic_quote = True
                 print(2)
             # Use bold rules text for the 3 Portal sets + S99:
             if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
-                # con.font_rules_text = "MPlantin-Bold"
-                setattr(con, 'font_rules_text', "MPlantin-Bold")
+                con.font_rules_text = "MPlantin-Bold"
                 print(3)
             print(f"===== EXPECTED new values ====")  # DEBUG
             expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
