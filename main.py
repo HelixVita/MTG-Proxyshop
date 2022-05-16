@@ -200,6 +200,7 @@ class ProxyshopApp(App):
 					self.close_document()
 					self.enable_buttons()
 					return None
+				self.load_defaults()
 			self.close_document()
 
 		# Return to normal
