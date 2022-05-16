@@ -149,9 +149,10 @@ class ProxyshopApp(App):
 			for ext in extensions:
 				files.extend(glob(os.path.join(artdir,"**", ext)))
 
-		# # FelixVita - Subfolders to skip
-		# numbers = '1'
-		# files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
+		# FelixVita - Subfolders to skip
+		numbers = ''  # Example: To skip subfolders starting with '1' and '2', let numbers = '12'. Or, to not skip any, let numbers = ''.
+		if numbers:
+			files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
 
 		# FelixVita - Don't re-render already rendered cards
 		rerender_all = False
