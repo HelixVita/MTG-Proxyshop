@@ -504,7 +504,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
             (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
-            (color == "Land" and setcode in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
+            (color == "Land" and setcode in sets_with_black_copyright_for_lands)
             ):
             collector_layer.textItem.color = psd.rgb_black()
             psd.apply_stroke(1, psd.rgb_black())
