@@ -63,7 +63,7 @@ sets_lacking_symbol_stroke = [
     "VIS",
     "ARN", # Probably
     "LEG", # Probably
-    "POR",
+    # "POR",
     "ICE", # Nope, because even a 1px black stroke is too much; it needs to be white.
     "P02",
     "ATQ",
