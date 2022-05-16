@@ -580,7 +580,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
-        if "Flashback" in self.layout.keywords:
+        if "tombstone" in self.layout.frame_effects or "Flashback" in self.layout.keywords:  # TODO: Test the new "tombstone" condition. Is self.layout.frame_effects the right expression? Try a non-flashback card, like Genesis (JUD)
             psd.getLayer("Tombstone").visible = True
 
          # super().enable_frame_layers()
