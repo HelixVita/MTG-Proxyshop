@@ -310,19 +310,19 @@ class StarterTemplate (temp.BaseTemplate):
             ),
         ])
 
-        print(f"---- Inspect values before adding expansion symbol field --- {__class__=} {__file__=}")  # DEBUG
-        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-        print(f"{con.align_classic_quote}")  # DEBUG
-        print(f"{con.font_rules_text}")  # DEBUG
-        print(f"{self.layout.symbol=}")
+        # print(f"---- Inspect values before adding expansion symbol field --- {__class__=} {__file__=}")  # DEBUG
+        # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        # print(f"{con.align_classic_quote}")  # DEBUG
+        # print(f"{con.font_rules_text}")  # DEBUG
+        # print(f"{self.layout.symbol=}")
 
         # Add expansion symbol field
         if setcode not in sets_without_set_symbol and setcode != "ALL":
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    text_contents = self.layout.symbol,
-                    # text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                    # text_contents = self.layout.symbol,
+                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -409,55 +409,52 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
     # OPTIONAL
     def __init__ (self, layout):
 
-        # DEBUG
-        print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
-        print(f"{__class__=} {__file__=}")  # DEBUG")
-        print(f"===== Variables to print =====")  # DEBUG
-        print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
-        print("con.align_classic_quote")  # DEBUG
-        print("con.font_rules_text")  # DEBUG
-        print("(other)")  # DEBUG
-        print(f"===== Previous/initial values =====")  # DEBUG
-        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-        print(f"{con.align_classic_quote}")  # DEBUG
-        print(f"{con.font_rules_text}")  # DEBUG
+        unconditionally_overwrite_constants = False
 
-
-        print(f"===== Conditions triggered =====")  # DEBUG
-
-        # Use alternate expansion symbol for ICE
-        if layout.set.upper() == "ICE":
-            # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
-            # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
-            setattr(con, "set_symbols['ICE']", "")
-            print(1)
-
-        # Right-justify citations in flavor text for all sets starting with Mirage
-        if layout.set.upper() not in pre_mirage_sets:
-            # con.align_classic_quote = True
-            setattr(con, 'align_classic_quote', True)
-            print(2)
-
-        # Use bold rules text for the 3 Portal sets + S99:
-        if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
-            # con.font_rules_text = "MPlantin-Bold"
-            setattr(con, 'font_rules_text', "MPlantin-Bold")
-            print(3)
-
-        # DEBUG
-        print(f"===== EXPECTED new values ====")  # DEBUG
-        expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
-        expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
-        expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
-        print(f"{expected_ice_symb}")  # DEBUG
-        print(f"{expected_align_bool}")  # DEBUG
-        print(f"{expected_rules_font}")  # DEBUG
-
-        # DEBUG
-        print(f"===== ACTUAL new values ====")  # DEBUG
-        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-        print(f"{con.align_classic_quote}")  # DEBUG
-        print(f"{con.font_rules_text}")  # DEBUG
+        if unconditionally_overwrite_constants:
+            con.set_symbols["ICE"] = ""
+            con.align_classic_quote = True
+            con.font_rules_text = "MPlantin-Bold"
+        else:
+            print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
+            print(f"{__class__=} {__file__=}")  # DEBUG")
+            print(f"===== Variables to print =====")  # DEBUG
+            print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
+            print("con.align_classic_quote")  # DEBUG
+            print("con.font_rules_text")  # DEBUG
+            print("(other)")  # DEBUG
+            print(f"===== Previous/initial values =====")  # DEBUG
+            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            print(f"{con.align_classic_quote}")  # DEBUG
+            print(f"{con.font_rules_text}")  # DEBUG
+            print(f"===== Conditions triggered =====")  # DEBUG
+            # Use alternate expansion symbol for ICE
+            if layout.set.upper() == "ICE":
+                # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+                # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
+                setattr(con, "set_symbols['ICE']", "")
+                print(1)
+            # Right-justify citations in flavor text for all sets starting with Mirage
+            if layout.set.upper() not in pre_mirage_sets:
+                # con.align_classic_quote = True
+                setattr(con, 'align_classic_quote', True)
+                print(2)
+            # Use bold rules text for the 3 Portal sets + S99:
+            if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
+                # con.font_rules_text = "MPlantin-Bold"
+                setattr(con, 'font_rules_text', "MPlantin-Bold")
+                print(3)
+            print(f"===== EXPECTED new values ====")  # DEBUG
+            expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
+            expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
+            expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
+            print(f"{expected_ice_symb}")  # DEBUG
+            print(f"{expected_align_bool}")  # DEBUG
+            print(f"{expected_rules_font}")  # DEBUG
+            print(f"===== ACTUAL new values ====")  # DEBUG
+            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            print(f"{con.align_classic_quote}")  # DEBUG
+            print(f"{con.font_rules_text}")  # DEBUG
 
         super().__init__(layout)
 
