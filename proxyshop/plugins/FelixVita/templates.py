@@ -287,6 +287,14 @@ class StarterTemplate (temp.BaseTemplate):
         else:
             gray = leg_gray
 
+        # Hardcoded changes to certain cardnames containing unrenderable chars:
+        cardname = str(self.layout.name)
+        if setcode == "ARN" and cardname.upper().startswith("RING"):
+            cardname = "Ring of Ma ruf"
+        elif setcode == "ICE" and cardname.upper().endswith("STROMGALD"):
+            cardname = "Marton Stromgald"
+
+
         # Add text layers
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
