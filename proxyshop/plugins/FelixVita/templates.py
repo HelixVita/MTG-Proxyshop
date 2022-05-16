@@ -323,7 +323,12 @@ class StarterTemplate (temp.BaseTemplate):
         # print(f"{self.layout.symbol=}")
 
         # Add expansion symbol field
-        if setcode not in sets_without_set_symbol and setcode != "ALL":
+        if setcode in sets_without_set_symbol:
+            pass
+        elif setcode == "ALL":
+            # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
+            unhide(("Set Symbol - Alliances", "Modifications", con.layers['LAND']))  # TODO: Test that this works
+        else:
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
@@ -612,9 +617,6 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 if setcode in ["FEM", "ALL"]:
                     # Enable thick colored trim with no black strokes
                     groups_to_unhide.append(("Trim - " + setcode, modifications, land))
-                    if setcode == "ALL":
-                        # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-                        groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
                 elif setcode != "LEG":
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
 
