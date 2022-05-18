@@ -161,14 +161,14 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         super().execute()
 
         # Size to fit reference?
-        if cfg.cfg.auto_symbol_size:
+        if cfg.auto_symbol_size:
             scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode in ["STH", "TMP", "PTK"] else 108 if self.setcode in ["USG", "EXO"] else 125 if self.setcode in ["ARN"] else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
 
         # Symbol stroke size (thickness)
-        symbol_stroke_size = cfg.cfg.symbol_stroke
+        symbol_stroke_size = cfg.symbol_stroke
         # Special cases
         nostroke = False
         if self.setcode == "DRK":
@@ -210,7 +210,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             psd.clear_selection()
 
         # Fill in the expansion symbol?
-        if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
+        if cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
             if self.setcode in pre_legends_sets or self.setcode == "HML":
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
@@ -353,7 +353,7 @@ class NormalClassicTemplate (StarterTemplate):
     def __init__(self, layout):
         # Collector info
         cfg.real_collector = True  # FelixVita
-        cfg.cfg.real_collector = True  # FelixVita
+        cfg.real_collector = True  # FelixVita
         if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
         super().__init__(layout)
         self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
