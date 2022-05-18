@@ -195,7 +195,7 @@ class BaseTemplate:
         original_file_path = Path(self.layout.file)
         original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
         # Save file in a subfolder in out? (like "out/mySubfolder")
-        out_subfolder_enabled = False
+        out_subfolder_enabled = True
         out_subfolder = "cube"
         # Use a template name suffix?
         suffix_enabled = False

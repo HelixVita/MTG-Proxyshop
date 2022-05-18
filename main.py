@@ -124,7 +124,7 @@ class ProxyshopApp(App):
 		# ========== FelixVita code changes ============================================================================
 		from pathlib import Path
 		out_folder = "out"
-		# out_folder = os.path.join("out", "cube")
+		out_folder = os.path.join("out", "cube")
 		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
 
 		# FelixVita - Also get art from other location(s)
@@ -136,10 +136,11 @@ class ProxyshopApp(App):
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-godkjent"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-please-redo"),
+			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-cube-16-may-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-godkjent"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-please-redo"),
 		]
 		# Iterate through art folders
 		for artdir in other_art_folders:
