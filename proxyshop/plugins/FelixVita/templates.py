@@ -503,7 +503,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             (color == "W") or
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
-            (color == "Gold" and setcode in pre_legends_sets) or  # TODO: Verify that this makes sense aesthetically
+            (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Verify that this makes sense aesthetically
             (color == "Land" and setcode in sets_with_black_copyright_for_lands)
             ):
             collector_layer.textItem.color = psd.rgb_black()
