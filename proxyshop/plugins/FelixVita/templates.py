@@ -427,42 +427,42 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             con.align_classic_quote = True
             con.font_rules_text = "MPlantin-Bold"
         else:
-            print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
-            print(f"{__class__=} {__file__=}")  # DEBUG")
-            print(f"===== Variables to print =====")  # DEBUG
-            print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
-            print("con.align_classic_quote")  # DEBUG
-            print("con.font_rules_text")  # DEBUG
-            print("(other)")  # DEBUG
-            print(f"===== Previous/initial values =====")  # DEBUG
-            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            print(f"{con.align_classic_quote}")  # DEBUG
-            print(f"{con.font_rules_text}")  # DEBUG
-            print(f"===== Conditions triggered =====")  # DEBUG
+            # print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
+            # print(f"{__class__=} {__file__=}")  # DEBUG")
+            # print(f"===== Variables to print =====")  # DEBUG
+            # print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
+            # print("con.align_classic_quote")  # DEBUG
+            # print("con.font_rules_text")  # DEBUG
+            # print("(other)")  # DEBUG
+            # print(f"===== Previous/initial values =====")  # DEBUG
+            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            # print(f"{con.align_classic_quote}")  # DEBUG
+            # print(f"{con.font_rules_text}")  # DEBUG
+            # print(f"===== Conditions triggered =====")  # DEBUG
             # Use alternate expansion symbol for ICE
             if layout.set.upper() == "ICE":
                 con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
                 # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
-                print(1)
+                # print(1)
             # Right-justify citations in flavor text for all sets starting with Mirage
             if layout.set.upper() not in pre_mirage_sets:
                 con.align_classic_quote = True
-                print(2)
+                # print(2)
             # Use bold rules text for the 3 Portal sets + S99:
             if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
                 con.font_rules_text = "MPlantin-Bold"
-                print(3)
-            print(f"===== EXPECTED new values ====")  # DEBUG
-            expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
-            expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
-            expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
-            print(f"{expected_ice_symb}")  # DEBUG
-            print(f"{expected_align_bool}")  # DEBUG
-            print(f"{expected_rules_font}")  # DEBUG
-            print(f"===== ACTUAL new values ====")  # DEBUG
-            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            print(f"{con.align_classic_quote}")  # DEBUG
-            print(f"{con.font_rules_text}")  # DEBUG
+                # print(3)
+            # print(f"===== EXPECTED new values ====")  # DEBUG
+            # expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
+            # expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
+            # expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
+            # print(f"{expected_ice_symb}")  # DEBUG
+            # print(f"{expected_align_bool}")  # DEBUG
+            # print(f"{expected_rules_font}")  # DEBUG
+            # print(f"===== ACTUAL new values ====")  # DEBUG
+            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            # print(f"{con.align_classic_quote}")  # DEBUG
+            # print(f"{con.font_rules_text}")  # DEBUG
 
         super().__init__(layout)
 
