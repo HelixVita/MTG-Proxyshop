@@ -304,7 +304,7 @@ class StarterTemplate (temp.BaseTemplate):
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
-                text_contents=self.layout.name,
+                text_contents=cardname,
                 text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
@@ -327,7 +327,7 @@ class StarterTemplate (temp.BaseTemplate):
             pass
         elif setcode == "ALL":
             # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-            unhide(("Set Symbol - Alliances", "Modifications", con.layers['LAND']))  # TODO: Test that this works
+            unhide(("Set Symbol - Alliances", con.layers['TEXT_AND_ICONS']))  # TODO: Test that this works
         else:
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
@@ -499,11 +499,11 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         # print(f"{color=}")
         app.activeDocument.activeLayer = collector_layer
         if (
-            (setcode in pre_legends_sets) or
+            (setcode in pre_legends_sets) or  # Can't be white, because that looks weird when the other legal text is grayish white.
             (color == "W") or
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
-            (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Verify that this makes sense aesthetically
+            # (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Verify that this makes sense aesthetically. Nope It doesn't.
             (color == "Land" and setcode in sets_with_black_copyright_for_lands)
             ):
             collector_layer.textItem.color = psd.rgb_black()
@@ -581,7 +581,7 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
         if "tombstone" in self.layout.frame_effects or "Flashback" in self.layout.keywords:  # TODO: Test the new "tombstone" condition. Is self.layout.frame_effects the right expression? Try a non-flashback card, like Genesis (JUD)
-            psd.getLayer("Tombstone").visible = True
+            unhide(("Tombstone", con.layers['TEXT_AND_ICONS']))
 
          # super().enable_frame_layers()
 
