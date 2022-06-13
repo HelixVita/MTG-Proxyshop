@@ -412,10 +412,10 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
      * Created by FelixVita
     """
     def template_file_name (self):
-        return "FelixVita/retro-1997"
+        return "FelixVita/ancient"
 
     def template_suffix (self):
-        return "Retro-1997"
+        return "Ancient"
 
     # OPTIONAL
     def __init__ (self, layout):
