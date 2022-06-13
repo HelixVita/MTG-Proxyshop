@@ -558,6 +558,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
             psd.getLayer("1993 Style - Brightness", black_group).visible = True
             psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop 2", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop 3", black_group).visible = True
             psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
             psd.getLayer("1993 Style - Hue", black_group).visible = True
         elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
