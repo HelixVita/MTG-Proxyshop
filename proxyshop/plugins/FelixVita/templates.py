@@ -119,8 +119,8 @@ def frame_expansion_symbol_customscale(layer, reference_layer, centered, scale_p
      * Scale a layer equally to the bounds of a reference layer, then centre the layer vertically and horizontally
      * within those bounds.
     """
-    layer_dimensions = psd.compute_layer_dimensions(layer)
-    reference_dimensions = psd.compute_layer_dimensions(reference_layer)
+    layer_dimensions = psd.get_layer_dimensions(layer)
+    reference_dimensions = psd.get_layer_dimensions(reference_layer)
 
     # Determine how much to scale the layer by such that it fits into the reference layer's bounds
     scale_factor = scale_percent * min(reference_dimensions['width'] / layer_dimensions['width'], reference_dimensions['height'] / layer_dimensions['height'])
@@ -139,14 +139,14 @@ class RetroExpansionSymbolField (txt_layers.TextField):
      * Created by FelixVita
      * A TextField which represents a card's expansion symbol.
      * `layer`: Expansion symbol layer
-     * `text_contents`: The symbol character
+     * `contents`: The symbol character
      * `rarity`: The clipping mask to enable (uncommon, rare, mythic)
      * `reference`: Reference layer to scale and center
      * `centered`: Whether to center horizontally, ex: Ixalan
      * `symbol_stroke_size`: The symbol stroke size (thickness).
     """
-    def __init__ (self, layer, text_contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None, background=None):
-        super().__init__(layer, text_contents, psd.rgb_black())
+    def __init__ (self, layer, contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None, background=None):
+        super().__init__(layer, contents, psd.rgb_black())
         self.centered = centered
         self.rarity = rarity
         self.reference = reference
@@ -299,20 +299,20 @@ class StarterTemplate (temp.BaseTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer=mana_cost,
-                text_contents=self.layout.mana_cost,
-                text_color=psd.rgb_black()
+                contents=self.layout.mana_cost,
+                color=psd.rgb_black()
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
-                text_contents=cardname,
-                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
-                reference_layer=mana_cost
+                contents=cardname,
+                color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
+                reference=mana_cost
             ),
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
-                text_contents=self.layout.type_line,
-                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
-                reference_layer=expansion_symbol
+                contents=self.layout.type_line,
+                color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
+                reference=expansion_symbol
             ),
         ])
 
@@ -332,8 +332,8 @@ class StarterTemplate (temp.BaseTemplate):
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    # text_contents = self.layout.symbol,
-                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                    # contents = self.layout.symbol,
+                    contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -376,11 +376,11 @@ class NormalClassicTemplate (StarterTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer=rules_text,
-                text_contents=self.layout.oracle_text,
-                text_color=psd.get_text_layer_color(rules_text),
-                flavor_text=self.layout.flavor_text,
-                is_centered=is_centered,
-                reference_layer=reference_layer,
+                contents=self.layout.oracle_text,
+                color=psd.get_text_layer_color(rules_text),
+                flavor=self.layout.flavor_text,
+                centered=is_centered,
+                reference=reference_layer,
                 fix_length=False
             )
         )
@@ -399,8 +399,8 @@ class NormalClassicTemplate (StarterTemplate):
             self.tx_layers.append(
                 txt_layers.TextField(
                     layer=power_toughness,
-                    text_contents=str(self.layout.power) + space + "/" + str(self.layout.toughness) + space,
-                    text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
+                    contents=str(self.layout.power) + space + "/" + str(self.layout.toughness) + space,
+                    color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
                 )
             )
         else: power_toughness.visible = False
