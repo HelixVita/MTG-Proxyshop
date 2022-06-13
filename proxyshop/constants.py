@@ -7,6 +7,16 @@ import os
 from pathlib import Path
 cwd = os.getcwd()
 
+
+# For object permanence
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 # Ensure mandatory folders are created
 Path(os.path.join(cwd, "out")).mkdir(mode=511, parents=True, exist_ok=True)
 Path(os.path.join(cwd, "tmp")).mkdir(mode=511, parents=True, exist_ok=True)
@@ -433,6 +443,8 @@ with open(os.path.join(cwd, "proxyshop/symbols.json"), encoding="utf-8-sig") as 
 
 
 class Con:
+    __metaclass__ = Singleton
+
     def __init__(self):
         self.load_values()
 
@@ -518,17 +530,17 @@ class Con:
 
     def reload(self):
         self.load_values()
-        print(f"---- Inspect vars directly after executing 'reload(self)' --- {__file__=}")  # DEBUG
-        print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-        print(f"{con.align_classic_quote}")  # DEBUG
-        print(f"{con.font_rules_text}")  # DEBUG
+        # print(f"---- Inspect vars directly after executing 'reload(self)' --- {__file__=}")  # DEBUG
+        # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        # print(f"{con.align_classic_quote}")  # DEBUG
+        # print(f"{con.font_rules_text}")  # DEBUG
 
 
 # Global instance
 con = Con()
 
-print(f"---- Inspect vars directly after executing 'con = Con()' --- {__file__=}")  # DEBUG
-print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-print(f"{con.align_classic_quote}")  # DEBUG
-print(f"{con.font_rules_text}")  # DEBUG
+# print(f"---- Inspect vars directly after executing 'con = Con()' --- {__file__=}")  # DEBUG
+# print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+# print(f"{con.align_classic_quote}")  # DEBUG
+# print(f"{con.font_rules_text}")  # DEBUG
 

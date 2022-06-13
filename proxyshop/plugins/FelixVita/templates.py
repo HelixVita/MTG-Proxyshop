@@ -1,13 +1,11 @@
 """
 FelixVita TEMPLATES
 """
-import os
-import proxyshop.frame_logic as frame_logic
-import proxyshop.format_text as format_text
+# from proxyshop import format_text
 import proxyshop.text_layers as txt_layers
 import proxyshop.templates as temp
-import proxyshop.constants as con
-import proxyshop.settings as cfg
+from proxyshop.constants import con
+from proxyshop.settings import cfg
 import proxyshop.helpers as psd
 import photoshop.api as ps
 app = ps.Application()
@@ -65,7 +63,7 @@ sets_lacking_symbol_stroke = [
     "VIS",
     "ARN", # Probably
     "LEG", # Probably
-    "POR",
+    # "POR",
     "ICE", # Nope, because even a 1px black stroke is too much; it needs to be white.
     "P02",
     "ATQ",
@@ -163,14 +161,14 @@ class RetroExpansionSymbolField (txt_layers.TextField):
         super().execute()
 
         # Size to fit reference?
-        if cfg.cfg.auto_symbol_size:
+        if cfg.auto_symbol_size:
             scale_percent = 70 if self.setcode in ["ATQ", "FEM"] else 85 if self.setcode in ["STH", "TMP", "PTK"] else 108 if self.setcode in ["USG", "EXO"] else 125 if self.setcode in ["ARN"] else 100
             if self.centered: frame_expansion_symbol_customscale(self.layer, self.reference, True, scale_percent)
             else: frame_expansion_symbol_customscale(self.layer, self.reference, False, scale_percent)
         app.activeDocument.activeLayer = self.layer
 
         # Symbol stroke size (thickness)
-        symbol_stroke_size = cfg.cfg.symbol_stroke
+        symbol_stroke_size = cfg.symbol_stroke
         # Special cases
         nostroke = False
         if self.setcode == "DRK":
@@ -212,7 +210,7 @@ class RetroExpansionSymbolField (txt_layers.TextField):
             psd.clear_selection()
 
         # Fill in the expansion symbol?
-        if cfg.cfg.fill_symbol and not self.has_hollow_set_symbol:
+        if cfg.fill_symbol and not self.has_hollow_set_symbol:
             app.activeDocument.activeLayer = self.layer
             if self.setcode in pre_legends_sets or self.setcode == "HML":
                 psd.fill_expansion_symbol(self.reference, psd.get_rgb(186, 186, 186))
@@ -289,6 +287,14 @@ class StarterTemplate (temp.BaseTemplate):
         else:
             gray = leg_gray
 
+        # Hardcoded changes to certain cardnames containing unrenderable chars:
+        cardname = str(self.layout.name)
+        if setcode == "ARN" and cardname.upper().startswith("RING"):
+            cardname = "Ring of Ma ruf"
+        elif setcode == "ICE" and cardname.upper().endswith("STROMGALD"):
+            cardname = "Marton Stromgald"
+
+
         # Add text layers
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
@@ -298,7 +304,7 @@ class StarterTemplate (temp.BaseTemplate):
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
-                text_contents=self.layout.name,
+                text_contents=cardname,
                 text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference_layer=mana_cost
             ),
@@ -317,7 +323,12 @@ class StarterTemplate (temp.BaseTemplate):
         # print(f"{self.layout.symbol=}")
 
         # Add expansion symbol field
-        if setcode not in sets_without_set_symbol and setcode != "ALL":
+        if setcode in sets_without_set_symbol:
+            pass
+        elif setcode == "ALL":
+            # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
+            unhide(("Set Symbol - Alliances", con.layers['TEXT_AND_ICONS']))  # TODO: Test that this works
+        else:
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
@@ -342,7 +353,7 @@ class NormalClassicTemplate (StarterTemplate):
     def __init__(self, layout):
         # Collector info
         cfg.real_collector = True  # FelixVita
-        cfg.cfg.real_collector = True  # FelixVita
+        cfg.real_collector = True  # FelixVita
         if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
         super().__init__(layout)
         self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
@@ -416,45 +427,42 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             con.align_classic_quote = True
             con.font_rules_text = "MPlantin-Bold"
         else:
-            print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
-            print(f"{__class__=} {__file__=}")  # DEBUG")
-            print(f"===== Variables to print =====")  # DEBUG
-            print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
-            print("con.align_classic_quote")  # DEBUG
-            print("con.font_rules_text")  # DEBUG
-            print("(other)")  # DEBUG
-            print(f"===== Previous/initial values =====")  # DEBUG
-            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            print(f"{con.align_classic_quote}")  # DEBUG
-            print(f"{con.font_rules_text}")  # DEBUG
-            print(f"===== Conditions triggered =====")  # DEBUG
+            # print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
+            # print(f"{__class__=} {__file__=}")  # DEBUG")
+            # print(f"===== Variables to print =====")  # DEBUG
+            # print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
+            # print("con.align_classic_quote")  # DEBUG
+            # print("con.font_rules_text")  # DEBUG
+            # print("(other)")  # DEBUG
+            # print(f"===== Previous/initial values =====")  # DEBUG
+            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            # print(f"{con.align_classic_quote}")  # DEBUG
+            # print(f"{con.font_rules_text}")  # DEBUG
+            # print(f"===== Conditions triggered =====")  # DEBUG
             # Use alternate expansion symbol for ICE
             if layout.set.upper() == "ICE":
-                # con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
+                con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
                 # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
-                setattr(con, "set_symbols['ICE']", "")
-                print(1)
+                # print(1)
             # Right-justify citations in flavor text for all sets starting with Mirage
             if layout.set.upper() not in pre_mirage_sets:
-                # con.align_classic_quote = True
-                setattr(con, 'align_classic_quote', True)
-                print(2)
+                con.align_classic_quote = True
+                # print(2)
             # Use bold rules text for the 3 Portal sets + S99:
             if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
-                # con.font_rules_text = "MPlantin-Bold"
-                setattr(con, 'font_rules_text', "MPlantin-Bold")
-                print(3)
-            print(f"===== EXPECTED new values ====")  # DEBUG
-            expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
-            expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
-            expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
-            print(f"{expected_ice_symb}")  # DEBUG
-            print(f"{expected_align_bool}")  # DEBUG
-            print(f"{expected_rules_font}")  # DEBUG
-            print(f"===== ACTUAL new values ====")  # DEBUG
-            print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            print(f"{con.align_classic_quote}")  # DEBUG
-            print(f"{con.font_rules_text}")  # DEBUG
+                con.font_rules_text = "MPlantin-Bold"
+                # print(3)
+            # print(f"===== EXPECTED new values ====")  # DEBUG
+            # expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
+            # expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
+            # expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
+            # print(f"{expected_ice_symb}")  # DEBUG
+            # print(f"{expected_align_bool}")  # DEBUG
+            # print(f"{expected_rules_font}")  # DEBUG
+            # print(f"===== ACTUAL new values ====")  # DEBUG
+            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+            # print(f"{con.align_classic_quote}")  # DEBUG
+            # print(f"{con.font_rules_text}")  # DEBUG
 
         super().__init__(layout)
 
@@ -491,12 +499,12 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
         # print(f"{color=}")
         app.activeDocument.activeLayer = collector_layer
         if (
-            (setcode in pre_legends_sets) or
+            (setcode in pre_legends_sets) or  # Can't be white, because that looks weird when the other legal text is grayish white.
             (color == "W") or
             (color == "R" and setcode in pre_mmq_sets) or
             (color == "U" and setcode in pre_hml_sets) or
-            (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Check if "Gold" is the correct term here for multicolor cards
-            (color == "Land" and setcode in sets_with_black_copyright_for_lands)  # TODO: Check if "Land" is the correct term here for Land cards
+            # (color == "Gold" and setcode in pre_mirage_sets) or  # TODO: Verify that this makes sense aesthetically. Nope It doesn't.
+            (color == "Land" and setcode in sets_with_black_copyright_for_lands)
             ):
             collector_layer.textItem.color = psd.rgb_black()
             psd.apply_stroke(1, psd.rgb_black())
@@ -550,6 +558,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
             psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
             psd.getLayer("1993 Style - Brightness", black_group).visible = True
             psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop 2", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Backdrop 3", black_group).visible = True
             psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
             psd.getLayer("1993 Style - Hue", black_group).visible = True
         elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
@@ -572,8 +582,8 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
                 psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
-        if "Flashback" in self.layout.keywords:
-            psd.getLayer("Tombstone").visible = True
+        if "tombstone" in self.layout.frame_effects or "Flashback" in self.layout.keywords:  # TODO: Test the new "tombstone" condition. Is self.layout.frame_effects the right expression? Try a non-flashback card, like Genesis (JUD)
+            unhide(("Tombstone", con.layers['TEXT_AND_ICONS']))
 
          # super().enable_frame_layers()
 
@@ -606,9 +616,6 @@ class RetroNinetysevenTemplate (NormalClassicTemplate):
                 if setcode in ["FEM", "ALL"]:
                     # Enable thick colored trim with no black strokes
                     groups_to_unhide.append(("Trim - " + setcode, modifications, land))
-                    if setcode == "ALL":
-                        # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-                        groups_to_unhide.append(("Set Symbol - Alliances", modifications, land))
                 elif setcode != "LEG":
                     layers_to_unhide.append((thicker_trim_stroke, modifications, land))
 

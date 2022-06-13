@@ -7,28 +7,27 @@ import os
 cwd = os.getcwd()
 
 
+# For object permanence
+class Singleton(type):
+	_instances = {}
+
+	def __call__(cls, *args, **kwargs):
+		if cls not in cls._instances:
+			cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+		return cls._instances[cls]
+
+
 class Config:
 	"""
 	Build our config info
 	"""
+	__metaclass__ = Singleton
+
 	def __init__(self, conf=os.path.join(cwd, "config.ini")):
-		self.symbol_char = None
-		self.exit_early = None
-		self.save_jpeg = None
-		self.file_ext = None
-		self.skip_failed = None
-		self.auto_symbol = None
-		self.auto_symbol_size = None
-		self.symbol_stroke = None
-		self.fill_symbol = None
-		self.remove_flavor = None
-		self.remove_reminder = None
-		self.real_collector = None
-		self.template = None
-		self.save_artist_name = None
 		self.file = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 		self.file.optionxform = str
-		self.file.read(conf, encoding="utf-8")
+		with open(conf, encoding="utf-8") as file:
+			self.file.read_file(file)
 		self.load()
 
 	def load(self):
@@ -56,6 +55,9 @@ class Config:
 		self.symbol_stroke = self.file['SYMBOLS']['Symbol.Stroke.Size']
 		self.fill_symbol = self.file.getboolean('SYMBOLS', 'Fill.Symbol.Background')
 
+		# EXPERIMENTAL section
+		self.targeted_replace = self.file.getboolean('EXPERIMENTAL', 'Targeted.Replace')
+
 	def update(self):
 		self.file.set("SYMBOLS", "Auto.Set.Symbol", str(self.auto_symbol))
 		self.file.set("SYMBOLS", "Auto.Symbol.Size", str(self.auto_symbol_size))
@@ -79,10 +81,11 @@ class Config:
 		del self.file
 		self.file = configparser.ConfigParser(comment_prefixes='/', allow_no_value=True)
 		self.file.optionxform = str
-		self.file.read(conf, encoding="utf-8")
+		with open(conf, encoding="utf-8") as file:
+			self.file.read_file(file)
 		self.load()
 
 cfg = Config()
 
-print(f"---- Inspect cfg.symbol_char directly after calling 'cfg = Config()' {__file__=}")  # DEBUG
-print(f"{repr(cfg.symbol_char)}")
+# print(f"---- Inspect cfg.symbol_char directly after calling 'cfg = Config()' {__file__=}")  # DEBUG
+# print(f"{repr(cfg.symbol_char)}")

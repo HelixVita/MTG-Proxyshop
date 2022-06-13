@@ -124,7 +124,7 @@ class ProxyshopApp(App):
 		# ========== FelixVita code changes ============================================================================
 		from pathlib import Path
 		out_folder = "out"
-		# out_folder = os.path.join("out", "cube")
+		out_folder = os.path.join("out", "cube")
 		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
 
 		# FelixVita - Also get art from other location(s)
@@ -136,8 +136,15 @@ class ProxyshopApp(App):
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
-			os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-cube-16-may-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-godkjent"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-please-redo"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\0-scryfall-artcrops-do-not-touch"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\3-upscaled-discordbot"),
+			os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\4-autocropped"),
+
 		]
 		# Iterate through art folders
 		for artdir in other_art_folders:
@@ -149,9 +156,10 @@ class ProxyshopApp(App):
 			for ext in extensions:
 				files.extend(glob(os.path.join(artdir,"**", ext)))
 
-		# # FelixVita - Subfolders to skip
-		# numbers = '1'
-		# files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
+		# FelixVita - Subfolders to skip
+		numbers = ''  # Example: To skip subfolders starting with '1' and '2', let numbers = '12'. Or, to not skip any, let numbers = ''.
+		if numbers:
+			files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
 
 		# FelixVita - Don't re-render already rendered cards
 		rerender_all = False
@@ -161,6 +169,11 @@ class ProxyshopApp(App):
 			for subfolder in os.listdir(artdir):
 				already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
 		if not rerender_all: files = [_ for _ in files if Path(_).stem not in already_rendered_cards]
+
+		# Print files to terminal
+		print("Final list of files for rendering:")
+		for _ in files:
+			print(_)
 		# ======= End of FelixVita code changes ===========================================================================
 
 
@@ -200,6 +213,7 @@ class ProxyshopApp(App):
 					self.close_document()
 					self.enable_buttons()
 					return None
+				self.load_defaults()
 			self.close_document()
 
 		# Return to normal
