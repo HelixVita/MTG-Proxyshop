@@ -406,16 +406,16 @@ class NormalClassicTemplate (StarterTemplate):
         else: power_toughness.visible = False
 
 
-class RetroNinetysevenTemplate (NormalClassicTemplate):
+class AncientTemplate (NormalClassicTemplate):
     """
      * Notes about my template here
      * Created by FelixVita
     """
     def template_file_name (self):
-        return "FelixVita/retro-1997"
+        return "FelixVita/ancient"
 
     def template_suffix (self):
-        return "Retro-1997"
+        return "Ancient"
 
     # OPTIONAL
     def __init__ (self, layout):
