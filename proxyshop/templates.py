@@ -227,6 +227,7 @@ class BaseTemplate:
         out_subfolder = "cube"
         # Use a template name suffix?
         suffix_enabled = False
+        suffix = self.template_suffix()
         file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
         out_subfolder = out_subfolder if out_subfolder_enabled else ""
         file_name = f"{out_subfolder}/{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"

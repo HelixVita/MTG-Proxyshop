@@ -406,7 +406,7 @@ class NormalClassicTemplate (StarterTemplate):
         else: power_toughness.visible = False
 
 
-class RetroNinetysevenTemplate (NormalClassicTemplate):
+class AncientTemplate (NormalClassicTemplate):
     """
      * Notes about my template here
      * Created by FelixVita
