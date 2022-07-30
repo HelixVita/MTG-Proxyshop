@@ -12,10 +12,6 @@ from photoshop import api as ps
 app = ps.Application()
 console = gui.console_handler
 
-# Ensure scaling with pixels, font size with points
-app.preferences.rulerUnits = ps.Units.Pixels
-app.preferences.typeUnits = ps.Units.Points
-
 
 # MUST EXTEND THIS AT BARE MINIMUM
 class BaseTemplate:
@@ -48,7 +44,14 @@ class BaseTemplate:
             self.layout.oracle_text = format_text.strip_reminder_text(layout.oracle_text)
 
         # Add collector info
-        self.collector_info()
+        try: self.collector_info()
+        except Exception as e:
+            console.log_error(
+                "Encountered an error while inserting collector info!",
+                self.layout.name,
+                self.template_file_name(),
+                e
+            )
 
     def collector_info(self):
         """
@@ -80,6 +83,9 @@ class BaseTemplate:
             collector_top = psd.getLayer(con.layers['TOP_LINE'], collector_layer).textItem
             collector_bottom = psd.getLayer(con.layers['BOTTOM_LINE'], collector_layer)
 
+            # Fill in language if needed
+            if self.layout.lang != "en": psd.replace_text(collector_bottom, "EN", self.layout.lang.upper())
+
             # Apply the collector info
             collector_top.contents = \
                 f"{self.layout.collector_number}/{self.layout.card_count} {self.layout.rarity_letter}"
@@ -91,6 +97,9 @@ class BaseTemplate:
             # Layers we need
             set_layer = psd.getLayer("Set", self.legal_layer)
             artist_layer = psd.getLayer(con.layers['ARTIST'], self.legal_layer)
+
+            # Fill in language if needed
+            if self.layout.lang != "en": psd.replace_text(set_layer, "EN", self.layout.lang.upper())
 
             # Fill set info / artist info
             set_layer.textItem.contents = self.layout.set + set_layer.textItem.contents
@@ -124,6 +133,18 @@ class BaseTemplate:
         """
         return None
 
+    def get_file_name(self):
+        """
+        Format the output filename.
+        Overwrite this function if your template has specific demands.
+        """
+        suffix = self.template_suffix()
+        if cfg.save_artist_name:
+            if suffix: suffix = f"{suffix} {self.layout.artist}"
+            else: suffix = self.layout.artist
+        if suffix: return f"{self.layout.name} ({suffix})"
+        else: return self.layout.name
+
     def enable_frame_layers(self):
         """
         Enable the correct layers for this card's frame.
@@ -134,12 +155,21 @@ class BaseTemplate:
         """
         Write code that will be processed after text layers are executed.
         """
+        pass
 
     def post_execute(self):
         """
         Write code that will be processed after execute completes.
         """
         pass
+
+    def reset(self):
+        """
+        Reset the document, purge the cache, end await.
+        """
+        psd.reset_document(os.path.basename(self.file_path))
+        app.purge(4)
+        console.end_await()
 
     def execute(self):
         """
@@ -148,6 +178,7 @@ class BaseTemplate:
         specified one. Don't override this method!
         """
         # Load in artwork and frame it
+        app.activeDocument.info.urgency = ps.Urgency.High
         self.load_artwork()
         psd.frame_layer(self.art_layer, self.art_reference)
 
@@ -162,6 +193,7 @@ class BaseTemplate:
                 self.template_file_name(),
                 e
             )
+            self.reset()
             return result
 
         # Input and format each text layer
@@ -177,18 +209,14 @@ class BaseTemplate:
                 self.template_file_name(),
                 e
             )
+            self.reset()
             return result
 
-        # Post text layer formatting
+        # Post text layer execution
         self.post_text_layers()
 
         # Format file name
-        suffix = self.template_suffix()
-        if cfg.save_artist_name:
-            if suffix: suffix = f"{suffix} {self.layout.artist}"
-            else: suffix = self.layout.artist
-        if suffix: file_name = f"{self.layout.name} ({suffix})"
-        else: file_name = self.layout.name
+        file_name = self.get_file_name()
 
 		# ========== FelixVita code changes ============================================================================
         # Save render using same name as the art file
@@ -196,9 +224,10 @@ class BaseTemplate:
         original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
         # Save file in a subfolder in out? (like "out/mySubfolder")
         out_subfolder_enabled = True
-        out_subfolder = "cube"
+        out_subfolder = "cube/jonas"
         # Use a template name suffix?
         suffix_enabled = False
+        suffix = self.template_suffix()
         file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
         out_subfolder = out_subfolder if out_subfolder_enabled else ""
         file_name = f"{out_subfolder}/{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"
@@ -218,14 +247,11 @@ class BaseTemplate:
             if cfg.save_jpeg: psd.save_document_jpeg(file_name)
             else: psd.save_document_png(file_name)
             console.update(f"[b]{file_name}[/b] rendered successfully!")
-
-            # Post execution code, then reset document
-            self.post_execute()
-            psd.reset_document(os.path.basename(self.file_path))
         except Exception as e: console.update(f"Error during save process!\nMake sure the file saved.", e)
 
-        # Return for next assignment
-        console.end_await()
+        # Post execution code, then reset document
+        self.post_execute()
+        self.reset()
         return True
 
 
@@ -279,27 +305,24 @@ class StarterTemplate (BaseTemplate):
         # Add text layers
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
-                layer=mana_cost,
-                text_contents=self.layout.mana_cost,
-                text_color=psd.rgb_black()
+                layer = mana_cost,
+                contents = self.layout.mana_cost
             ),
             txt_layers.ScaledTextField(
-                layer=name_selected,
-                text_contents=self.layout.name,
-                text_color=psd.get_text_layer_color(name_selected),
-                reference_layer=mana_cost
+                layer = name_selected,
+                contents = self.layout.name,
+                reference = mana_cost
             ),
             txt_layers.ExpansionSymbolField(
-                layer=expansion_symbol,
-                text_contents=self.layout.symbol,
-                rarity=self.layout.rarity,
-                reference=expansion_reference
+                layer = expansion_symbol,
+                contents = self.layout.symbol,
+                rarity = self.layout.rarity,
+                reference = expansion_reference
             ),
             txt_layers.ScaledTextField(
-                layer=type_line_selected,
-                text_contents=self.layout.type_line,
-                text_color=psd.get_text_layer_color(type_line_selected),
-                reference_layer=expansion_symbol
+                layer = type_line_selected,
+                contents = self.layout.type_line,
+                reference = expansion_symbol
             ),
         ])
 
@@ -380,18 +403,17 @@ class NormalTemplate (StarterTemplate):
             self.tx_layers.extend([
                 txt_layers.TextField(
                     layer = power_toughness,
-                    text_contents = str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color = psd.get_text_layer_color(power_toughness)
+                    contents = str(self.layout.power) + "/" + str(self.layout.toughness)
                 ),
                 txt_layers.CreatureFormattedTextArea(
                     layer = rules_text,
-                    text_contents = self.layout.oracle_text,
-                    text_color = psd.get_text_layer_color(rules_text),
-                    flavor_text = self.layout.flavor_text,
-                    reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
-                    pt_reference_layer = psd.getLayer(con.layers['PT_REFERENCE'], text_and_icons),
-                    pt_top_reference_layer = psd.getLayer(con.layers['PT_TOP_REFERENCE'], text_and_icons),
-                    is_centered = is_centered
+                    contents = self.layout.oracle_text,
+                    flavor = self.layout.flavor_text,
+                    reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                    divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                    pt_reference = psd.getLayer(con.layers['PT_REFERENCE'], text_and_icons),
+                    pt_top_reference = psd.getLayer(con.layers['PT_TOP_REFERENCE'], text_and_icons),
+                    centered = is_centered
                 )
             ])
         else:
@@ -403,11 +425,11 @@ class NormalTemplate (StarterTemplate):
             self.tx_layers.append(
                 txt_layers.FormattedTextArea(
                     layer = rules_text,
-                    text_contents = self.layout.oracle_text,
-                    text_color = psd.get_text_layer_color(rules_text),
-                    flavor_text = self.layout.flavor_text,
-                    reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
-                    is_centered = is_centered
+                    contents = self.layout.oracle_text,
+                    flavor = self.layout.flavor_text,
+                    reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                    divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                    centered = is_centered
                 )
             )
 
@@ -423,24 +445,29 @@ class NormalTemplate (StarterTemplate):
         psd.getLayer(self.layout.pinlines, pinlines).visible = True
 
         # Background
-        if self.layout.is_nyx: psd.getLayer(self.layout.background, con.layers['NYX']).visible = True
+        if self.layout.is_nyx:
+            try: psd.getLayer(self.layout.background, con.layers['NYX']).visible = True
+            except Exception as e:
+                # Template doesn't have Nyx layers
+                console.log_exception(e)
+                psd.getLayer(self.layout.background, con.layers['BACKGROUND']).visible = True
         else: psd.getLayer(self.layout.background, con.layers['BACKGROUND']).visible = True
 
+        # Legendary crown
         if self.is_legendary:
-            # Legendary crown
             crown = psd.getLayerSet(con.layers['LEGENDARY_CROWN'])
             psd.getLayer(self.layout.pinlines, crown).visible = True
             psd.getLayer(con.layers['NORMAL_BORDER'], con.layers['BORDER']).visible = False
             psd.getLayer(con.layers['LEGENDARY_BORDER'], con.layers['BORDER']).visible = True
 
-            # Hollow for Nyx or Companion
-            if self.layout.is_nyx or self.is_companion:
-                # Enable the hollow crown shadow and layer mask on crown, pinlines, and shadows
-                self.enable_hollow_crown(crown, pinlines)
+            # Nyx/Companion: Enable the hollow crown shadow and layer mask on crown, pinlines, and shadows
+            if self.layout.is_nyx or self.is_companion: self.enable_hollow_crown(crown, pinlines)
 
+        # Enable companion texture
         if self.is_companion:
-            # Enable companion texture
-            psd.getLayer(self.layout.pinlines, con.layers['COMPANION']).visible = True
+            try:  # Does this template have companion layers?
+                psd.getLayer(self.layout.pinlines, con.layers['COMPANION']).visible = True
+            except Exception as e: console.log_exception(e)
 
 
 class NormalClassicTemplate (StarterTemplate):
@@ -475,13 +502,13 @@ class NormalClassicTemplate (StarterTemplate):
         # Add to text layers
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
-                layer=rules_text,
-                text_contents=self.layout.oracle_text,
-                text_color=psd.get_text_layer_color(rules_text),
-                flavor_text=self.layout.flavor_text,
-                is_centered=is_centered,
-                reference_layer=reference_layer,
-                fix_length=False
+                layer = rules_text,
+                contents = self.layout.oracle_text,
+                flavor = self.layout.flavor_text,
+                centered = is_centered,
+                reference = reference_layer,
+                divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                fix_length = False
             )
         )
 
@@ -490,9 +517,8 @@ class NormalClassicTemplate (StarterTemplate):
         if self.is_creature:
             self.tx_layers.append(
                 txt_layers.TextField(
-                    layer=power_toughness,
-                    text_contents=str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color=psd.get_text_layer_color(power_toughness)
+                    layer = power_toughness,
+                    contents = str(self.layout.power) + "/" + str(self.layout.toughness)
                 )
             )
         else: power_toughness.visible = False
@@ -654,8 +680,7 @@ class ExpeditionTemplate (NormalTemplate):
             self.tx_layers.append(
                 txt_layers.TextField(
                     layer = power_toughness,
-                    text_contents = str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color = psd.get_text_layer_color(power_toughness)
+                    contents = str(self.layout.power) + "/" + str(self.layout.toughness)
                 )
             )
 
@@ -664,11 +689,11 @@ class ExpeditionTemplate (NormalTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer = rules_text,
-                text_contents = self.layout.oracle_text,
-                text_color = psd.get_text_layer_color(rules_text),
-                flavor_text = self.layout.flavor_text,
-                reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
-                is_centered = False
+                contents = self.layout.oracle_text,
+                flavor = self.layout.flavor_text,
+                reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                centered = False
             ),
         )
 
@@ -714,11 +739,11 @@ class MiracleTemplate (NormalTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer = rules_text,
-                text_contents = self.layout.oracle_text,
-                text_color = psd.get_text_layer_color(rules_text),
-                flavor_text = self.layout.flavor_text,
-                reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
-                is_centered = False
+                contents = self.layout.oracle_text,
+                flavor = self.layout.flavor_text,
+                reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                centered = False
             ),
         )
 
@@ -781,8 +806,7 @@ class TransformFrontTemplate (TransformBackTemplate):
             self.tx_layers.append(
                 txt_layers.TextField(
                     layer = flipside_pt,
-                    text_contents = str(self.layout.other_face_power) + "/" + str(self.layout.other_face_toughness),
-                    text_color = psd.get_text_layer_color(flipside_pt),
+                    contents = str(self.layout.other_face_power) + "/" + str(self.layout.other_face_toughness)
                 )
             )
 
@@ -806,18 +830,17 @@ class TransformFrontTemplate (TransformBackTemplate):
             self.tx_layers.extend([
                 txt_layers.TextField(
                     layer = power_toughness,
-                    text_contents = str(self.layout.power) + "/" + str(self.layout.toughness),
-                    text_color = psd.get_text_layer_color(power_toughness),
+                    contents = str(self.layout.power) + "/" + str(self.layout.toughness)
                 ),
                 txt_layers.CreatureFormattedTextArea(
                     layer = rules_text,
-                    text_contents = self.layout.oracle_text,
-                    text_color = psd.get_text_layer_color(rules_text),
-                    flavor_text = self.layout.flavor_text,
-                    is_centered = is_centered,
-                    reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
-                    pt_reference_layer = psd.getLayer(con.layers['PT_REFERENCE'], text_and_icons),
-                    pt_top_reference_layer = psd.getLayer(con.layers['PT_TOP_REFERENCE'], text_and_icons),
+                    contents = self.layout.oracle_text,
+                    flavor = self.layout.flavor_text,
+                    centered = is_centered,
+                    reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                    divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons),
+                    pt_reference = psd.getLayer(con.layers['PT_REFERENCE'], text_and_icons),
+                    pt_top_reference = psd.getLayer(con.layers['PT_TOP_REFERENCE'], text_and_icons)
                 )
             ])
 
@@ -831,11 +854,11 @@ class TransformFrontTemplate (TransformBackTemplate):
             self.tx_layers.append(
                 txt_layers.FormattedTextArea(
                     layer = rules_text,
-                    text_contents = self.layout.oracle_text,
-                    text_color = psd.get_text_layer_color(rules_text),
-                    flavor_text = self.layout.flavor_text,
-                    is_centered = is_centered,
-                    reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                    contents = self.layout.oracle_text,
+                    flavor = self.layout.flavor_text,
+                    centered = is_centered,
+                    reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                    divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons)
                 )
             )
             power_toughness.visible = False
@@ -860,20 +883,18 @@ class IxalanTemplate (NormalTemplate):
         self.tx_layers.extend([
             txt_layers.TextField(
                 layer = name,
-                text_contents = self.layout.name,
-                text_color = psd.get_text_layer_color(name),
+                contents = self.layout.name
             ),
             txt_layers.ExpansionSymbolField(
                 layer = expansion_symbol,
-                text_contents = self.layout.symbol,
+                contents = self.layout.symbol,
                 rarity = self.layout.rarity,
                 reference = expansion_reference,
                 centered = True,
             ),
             txt_layers.TextField(
                 layer = type_line,
-                text_contents = self.layout.type_line,
-                text_color = psd.get_text_layer_color(type_line),
+                contents = self.layout.type_line
             )
         ])
 
@@ -883,11 +904,11 @@ class IxalanTemplate (NormalTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer = rules_text,
-                text_contents = self.layout.oracle_text,
-                text_color = psd.get_text_layer_color(rules_text),
-                flavor_text = self.layout.flavor_text,
-                is_centered = False,
-                reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                contents = self.layout.oracle_text,
+                flavor = self.layout.flavor_text,
+                centered = False,
+                reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE'], text_and_icons),
+                divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons)
             )
         )
 
@@ -916,14 +937,12 @@ class MDFCBackTemplate (NormalTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer = right,
-                text_contents = self.layout.other_face_right,
-                text_color = psd.get_text_layer_color(right),
+                contents = self.layout.other_face_right
             ),
             txt_layers.ScaledTextField(
                 layer = left,
-                text_contents = self.layout.other_face_left,
-                text_color = psd.get_text_layer_color(left),
-                reference_layer = right,
+                contents = self.layout.other_face_left,
+                reference = right,
             )
         ])
 
@@ -965,11 +984,10 @@ class MutateTemplate (NormalTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer = mutate,
-                text_contents = self.layout.mutate_text,
-                text_color = psd.get_text_layer_color(mutate),
-                flavor_text = self.layout.flavor_text,
-                is_centered = False,
-                reference_layer = psd.getLayer(con.layers['MUTATE_REFERENCE'], text_and_icons),
+                contents = self.layout.mutate_text,
+                flavor = self.layout.flavor_text,
+                centered = False,
+                reference = psd.getLayer(con.layers['MUTATE_REFERENCE'], text_and_icons),
             )
         )
 
@@ -997,27 +1015,23 @@ class AdventureTemplate (NormalTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer = mana_cost,
-                text_contents = self.layout.adventure['mana_cost'],
-                text_color = psd.rgb_black(),
+                contents = self.layout.adventure['mana_cost']
             ),
             txt_layers.ScaledTextField(
                 layer = name,
-                text_contents = self.layout.adventure['name'],
-                text_color = psd.get_text_layer_color(name),
-                reference_layer = mana_cost,
+                contents = self.layout.adventure['name'],
+                reference = mana_cost,
             ),
             txt_layers.FormattedTextArea(
                 layer = rules_text,
-                text_contents = self.layout.adventure['oracle_text'],
-                text_color = psd.get_text_layer_color(rules_text),
-                flavor_text = "",
-                is_centered = False,
-                reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE_ADVENTURE'], text_and_icons),
+                contents = self.layout.adventure['oracle_text'],
+                flavor = "",
+                centered = False,
+                reference = psd.getLayer(con.layers['TEXTBOX_REFERENCE_ADVENTURE'], text_and_icons),
             ),
             txt_layers.TextField(
                 layer = type_line,
-                text_contents = self.layout.adventure['type_line'],
-                text_color = psd.get_text_layer_color(type_line),
+                contents = self.layout.adventure['type_line']
             )
         ])
 
@@ -1038,43 +1052,35 @@ class LevelerTemplate (NormalTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer = psd.getLayer("Rules Text - Level Up", leveler_text_group),
-                text_contents = self.layout.level_up_text,
-                text_color = psd.rgb_black(),
+                contents = self.layout.level_up_text
             ),
             txt_layers.TextField(
                 layer = psd.getLayer("Top Power / Toughness", leveler_text_group),
-                text_contents = str(self.layout.power) + "/" + str(self.layout.toughness),
-                text_color = psd.rgb_black(),
+                contents = str(self.layout.power) + "/" + str(self.layout.toughness)
             ),
             txt_layers.TextField(
                 layer = psd.getLayer("Middle Level", leveler_text_group),
-                text_contents = self.layout.middle_level,
-                text_color = psd.rgb_black(),
+                contents = self.layout.middle_level
             ),
             txt_layers.TextField(
                 layer = psd.getLayer("Middle Power / Toughness", leveler_text_group),
-                text_contents = self.layout.middle_power_toughness,
-                text_color = psd.rgb_black(),
+                contents = self.layout.middle_power_toughness
             ),
             txt_layers.BasicFormattedTextField(
                 layer = psd.getLayer("Rules Text - Levels X-Y", leveler_text_group),
-                text_contents = self.layout.levels_x_y_text,
-                text_color = psd.rgb_black(),
+                contents = self.layout.levels_x_y_text
             ),
             txt_layers.TextField(
                 layer = psd.getLayer("Bottom Level", leveler_text_group),
-                text_contents = self.layout.bottom_level,
-                text_color = psd.rgb_black(),
+                contents = self.layout.bottom_level
             ),
             txt_layers.TextField(
                 layer = psd.getLayer("Bottom Power / Toughness", leveler_text_group),
-                text_contents = self.layout.bottom_power_toughness,
-                text_color = psd.rgb_black(),
+                contents = self.layout.bottom_power_toughness
             ),
             txt_layers.BasicFormattedTextField(
                 layer = psd.getLayer("Rules Text - Levels Z+", leveler_text_group),
-                text_contents = self.layout.levels_z_plus_text,
-                text_color = psd.rgb_black(),
+                contents = self.layout.levels_z_plus_text
             )
         ])
 
@@ -1115,8 +1121,7 @@ class SagaTemplate (NormalTemplate):
             self.tx_layers.append(
                 txt_layers.BasicFormattedTextField(
                     layer = psd.getLayer("Text", stage_group),
-                    text_contents = line,
-                    text_color = psd.rgb_black()
+                    contents = line
                 )
             )
 
@@ -1184,8 +1189,7 @@ class PlaneswalkerTemplate (StarterTemplate):
                 self.tx_layers.append(
                     txt_layers.TextField(
                         layer = psd.getLayer(con.layers['COST'], loyalty_graphic),
-                        text_contents = ability[0:int(colon_index)],
-                        text_color = psd.rgb_white(),
+                        contents = ability[0:int(colon_index)]
                     )
                 )
                 ability = ability[int(colon_index)+2:]
@@ -1202,19 +1206,15 @@ class PlaneswalkerTemplate (StarterTemplate):
             self.tx_layers.append(
                 txt_layers.BasicFormattedTextField(
                     layer = ability_layer,
-                    text_contents = ability,
-                    text_color = psd.get_text_layer_color(ability_layer),
+                    contents = ability
                 )
             )
 
-        # starting loyalty
+        # Starting loyalty
         self.tx_layers.append(
             txt_layers.TextField(
-                layer = psd.getLayer(
-                    con.layers['TEXT'], psd.getLayerSet(con.layers['STARTING_LOYALTY'], loyalty_group)
-                ),
-                text_contents = self.layout.loyalty,
-                text_color = psd.rgb_white(),
+                layer = psd.getLayer(con.layers['TEXT'], [loyalty_group, con.layers['STARTING_LOYALTY']]),
+                contents = self.layout.loyalty
             )
         )
 
@@ -1268,14 +1268,12 @@ class PlaneswalkerMDFCBackTemplate (PlaneswalkerTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer = right,
-                text_contents = self.layout.other_face_right,
-                text_color = psd.get_text_layer_color(right),
+                contents = self.layout.other_face_right
             ),
             txt_layers.ScaledTextField(
                 layer = left,
-                text_contents = self.layout.other_face_left,
-                text_color = psd.get_text_layer_color(left),
-                reference_layer = right,
+                contents = self.layout.other_face_left,
+                reference = right,
             )
         ])
 
@@ -1395,18 +1393,16 @@ class PlanarTemplate (StarterTemplate):
         self.tx_layers = [
             txt_layers.TextField(
                 layer = name,
-                text_contents = self.layout.name,
-                text_color = psd.get_text_layer_color(name),
+                contents = self.layout.name
             ),
             txt_layers.ScaledTextField(
                 layer = type_line,
-                text_contents = self.layout.type_line,
-                text_color = psd.get_text_layer_color(type_line),
-                reference_layer = expansion_symbol,
+                contents = self.layout.type_line,
+                reference = expansion_symbol,
             ),
             txt_layers.ExpansionSymbolField(
                 layer = expansion_symbol,
-                text_contents = self.layout.symbol,
+                contents = self.layout.symbol,
                 rarity = self.layout.rarity,
                 reference = expansion_reference
             )
@@ -1423,8 +1419,7 @@ class PlanarTemplate (StarterTemplate):
             self.tx_layers.append(
                 txt_layers.BasicFormattedTextField(
                     layer = static_ability,
-                    text_contents = self.layout.oracle_text,
-                    text_color = psd.get_text_layer_color(static_ability),
+                    contents = self.layout.oracle_text
                 )
             )
 
@@ -1440,13 +1435,11 @@ class PlanarTemplate (StarterTemplate):
             self.tx_layers.extend([
                 txt_layers.BasicFormattedTextField(
                     layer = static_ability,
-                    text_contents = self.layout.oracle_text[0:linebreak_index],
-                    text_color = psd.get_text_layer_color(static_ability),
+                    contents = self.layout.oracle_text[0:linebreak_index]
                 ),
                 txt_layers.BasicFormattedTextField(
                     layer = chaos_ability,
-                    text_contents = self.layout.oracle_text[linebreak_index+1:],
-                    text_color = psd.get_text_layer_color(chaos_ability),
+                    contents = self.layout.oracle_text[linebreak_index+1:]
                 ),
             ])
 
@@ -1481,7 +1474,7 @@ class BasicLandTemplate (BaseTemplate):
         self.tx_layers.append(
             txt_layers.ExpansionSymbolField(
                 layer = psd.getLayer("Expansion Symbol"),
-                text_contents = self.layout.symbol,
+                contents = self.layout.symbol,
                 rarity = "common",
                 reference = psd.getLayer(con.layers['EXPANSION_REFERENCE']),
             )

@@ -25,11 +25,21 @@ pre_exodus_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("EXO")]
 pre_mirage_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("MIR")]
 # Mirage featured some changes to the frame, including but not limited to:
 # 1. Citations in flavor text are now right-justified
-# 2. The rules box of white cards is now less patterned (less contrast)
-# 3. Frame of black cards is now darker
+# 2. Frame of black cards is now darker
+# 3. Wider rules box, with some additional changes for each color:
+# 3.1. W: Backgd now less patterned (less contrast); bevel shadows inverted.
+# 3.2. U: Backgd now less patterned (less contrast); bevel shadows changed.
+# 3.2. B: Parchment no longer surrounded by black box
+# 3.2. R: Bevel shadow intensity slightly changed.
+# 3.2. G: 'Parchment' brighter and less patterned
+# 3.2. M: (No significant changes besides width.)
+# 3.2. A: Bevel shadow width & intensity decreased.
 
 pre_hml_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("HML")]
 # Homelands changed the color of the copyright/collector's info on blue cards from black to white
+
+pre_fourth_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("4ED")]
+# 4ED Made the wooden rules text box of green cards considerably brighter.
 
 pre_legends_sets = list_of_all_mtg_sets[:list_of_all_mtg_sets.index("LEG")]
 # Legends made white text (cardname, typeline, P/T) white instead of gray
@@ -119,8 +129,8 @@ def frame_expansion_symbol_customscale(layer, reference_layer, centered, scale_p
      * Scale a layer equally to the bounds of a reference layer, then centre the layer vertically and horizontally
      * within those bounds.
     """
-    layer_dimensions = psd.compute_layer_dimensions(layer)
-    reference_dimensions = psd.compute_layer_dimensions(reference_layer)
+    layer_dimensions = psd.get_layer_dimensions(layer)
+    reference_dimensions = psd.get_layer_dimensions(reference_layer)
 
     # Determine how much to scale the layer by such that it fits into the reference layer's bounds
     scale_factor = scale_percent * min(reference_dimensions['width'] / layer_dimensions['width'], reference_dimensions['height'] / layer_dimensions['height'])
@@ -139,14 +149,14 @@ class RetroExpansionSymbolField (txt_layers.TextField):
      * Created by FelixVita
      * A TextField which represents a card's expansion symbol.
      * `layer`: Expansion symbol layer
-     * `text_contents`: The symbol character
+     * `contents`: The symbol character
      * `rarity`: The clipping mask to enable (uncommon, rare, mythic)
      * `reference`: Reference layer to scale and center
      * `centered`: Whether to center horizontally, ex: Ixalan
      * `symbol_stroke_size`: The symbol stroke size (thickness).
     """
-    def __init__ (self, layer, text_contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None, background=None):
-        super().__init__(layer, text_contents, psd.rgb_black())
+    def __init__ (self, layer, contents, rarity, reference, centered=False, is_pre_exodus=None, has_hollow_set_symbol=None, setcode=None, background=None):
+        super().__init__(layer, contents, psd.rgb_black())
         self.centered = centered
         self.rarity = rarity
         self.reference = reference
@@ -299,20 +309,20 @@ class StarterTemplate (temp.BaseTemplate):
         self.tx_layers.extend([
             txt_layers.BasicFormattedTextField(
                 layer=mana_cost,
-                text_contents=self.layout.mana_cost,
-                text_color=psd.rgb_black()
+                contents=self.layout.mana_cost,
+                color=psd.rgb_black()
             ),
             txt_layers.ScaledTextField(
                 layer=name_selected,
-                text_contents=cardname,
-                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
-                reference_layer=mana_cost
+                contents=cardname,
+                color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
+                reference=mana_cost
             ),
             txt_layers.ScaledTextField(
                 layer=type_line_selected,
-                text_contents=self.layout.type_line,
-                text_color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
-                reference_layer=expansion_symbol
+                contents=self.layout.type_line,
+                color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
+                reference=expansion_symbol
             ),
         ])
 
@@ -332,8 +342,8 @@ class StarterTemplate (temp.BaseTemplate):
             self.tx_layers.extend([
                 RetroExpansionSymbolField(
                     layer = expansion_symbol,
-                    # text_contents = self.layout.symbol,
-                    text_contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                    # contents = self.layout.symbol,
+                    contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
                     rarity = self.layout.rarity,
                     reference = expansion_reference,
                     is_pre_exodus = is_pre_exodus,
@@ -376,11 +386,11 @@ class NormalClassicTemplate (StarterTemplate):
         self.tx_layers.append(
             txt_layers.FormattedTextArea(
                 layer=rules_text,
-                text_contents=self.layout.oracle_text,
-                text_color=psd.get_text_layer_color(rules_text),
-                flavor_text=self.layout.flavor_text,
-                is_centered=is_centered,
-                reference_layer=reference_layer,
+                contents=self.layout.oracle_text,
+                color=psd.get_text_layer_color(rules_text),
+                flavor=self.layout.flavor_text,
+                centered=is_centered,
+                reference=reference_layer,
                 fix_length=False
             )
         )
@@ -399,8 +409,8 @@ class NormalClassicTemplate (StarterTemplate):
             self.tx_layers.append(
                 txt_layers.TextField(
                     layer=power_toughness,
-                    text_contents=str(self.layout.power) + space + "/" + str(self.layout.toughness) + space,
-                    text_color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
+                    contents=str(self.layout.power) + space + "/" + str(self.layout.toughness) + space,
+                    color=psd.get_rgb(186, 186, 186) if self.layout.set.upper() in pre_legends_sets else psd.get_text_layer_color(power_toughness)
                 )
             )
         else: power_toughness.visible = False
@@ -554,34 +564,52 @@ class AncientTemplate (NormalClassicTemplate):
             psd.getLayerSet("OuterRetroExpansionGroup", text_and_icons).visible = False
         if setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["B"]:
             black_group = psd.getLayerSet("B", "Nonland")
+            psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Black Backdrop", black_group).visible = True
+            psd.getLayer("1993 Style - Parchment Color Balance", black_group).visible = True
+            psd.getLayer("1993 Style - Brightness", black_group).visible = True
+            psd.getLayer("1993 Style - NW Brown Tint", black_group).visible = True
             psd.getLayer("1993 Style - Browner Edges", black_group).visible = True
             psd.getLayer("1993 Style - Parchment Hue", black_group).visible = True
-            psd.getLayer("1993 Style - Brightness", black_group).visible = True
-            psd.getLayer("1993 Style - Parchment Backdrop", black_group).visible = True
-            psd.getLayer("1993 Style - Parchment Backdrop 2", black_group).visible = True
-            psd.getLayer("1993 Style - Parchment Backdrop 3", black_group).visible = True
-            psd.getLayer("1993 Style - B Frame Tint Green", black_group).visible = True
-            psd.getLayer("1993 Style - Hue", black_group).visible = True
-        elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["G"]:  #TODO: Create a a separate list for sets with darker green box
+        elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["G"]:
             green_group = psd.getLayerSet("G", "Nonland")
-            psd.getLayer("1993 Style - G Box Darken", green_group).visible = True
-            psd.getLayer("1993 Style - G Frame Color Balance", green_group).visible = True
-            psd.getLayer("1993 Style - G Box Color Balance", green_group).visible = True
+            psd.getLayer("Un-1993 Exposure 2", green_group).visible = False
+            psd.getLayer("Un-1993 Color Balance", green_group).visible = False
+            if setcode in pre_fourth_sets:
+                psd.getLayer("Un-1993 Exposure", green_group).visible = False
+                psd.getLayer("Un-1993 Hue", green_group).visible = False
+                psd.getLayer("1993 Style - G Frame Color Balance (Hidden by Default)", green_group).visible = True
         elif setcode in ["LEA", "LEB"] and self.layout.scryfall['colors'] == ["R"]:
             red_group = psd.getLayerSet("R", "Nonland")
             psd.getLayer("LEA-LEB Inner Bevel Sunlight", red_group).visible = True
             psd.getLayer("LEA-LEB Box Hue", red_group).visible = True
             psd.getLayer("LEA-LEB Hue", red_group).visible = True
             psd.getLayer("LEA-LEB Color Balance", red_group).visible = True
-        elif setcode in pre_exodus_sets and self.layout.scryfall['colors'] == ["W"]:
+        elif setcode in pre_hml_sets and self.layout.scryfall['colors'] == ["Artifact"]:
+            artifact_group = psd.getLayerSet("Artifact", "Nonland")
+            psd.getLayer("1993 Style - Hue/Saturation", artifact_group).visible = True
+            psd.getLayer("1993 Style - Levels", artifact_group).visible = True
+            psd.getLayer("1993 Style - Levels Overall", artifact_group).visible = True
+        elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["W"]:
             white_group = psd.getLayerSet("W", "Nonland")
             psd.getLayer("LEA-LEB - Box Levels", white_group).visible = True
             psd.getLayer("LEA-LEB - Box Hue/Saturation", white_group).visible = True
-            if setcode in pre_atq_sets:
-                # psd.getLayer("LEA-LEB - Box Trim Hue", white_group).visible = True  # TODO: Remove from PSD template -- it just doesn't look good
-                psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
-                psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
-                psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Levels", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Hue/Saturation", white_group).visible = True
+            psd.getLayer("LEA-LEB - Frame Color Balance", white_group).visible = True
+        elif setcode in pre_mirage_sets and self.layout.scryfall['colors'] == ["U"]:
+            blue_group = psd.getLayerSet("U", "Nonland")
+            psd.getLayer("Rules Bevels - Bright SW (Normal)", blue_group).visible = False
+            psd.getLayer("Rules Bevels - Bright SW (LEA)", blue_group).visible = True
+            # psd.getLayer("LEA-LEB Frame Color Balance", blue_group).visible = True
+            # psd.getLayer("LEA-LEB Frame Levels", blue_group).visible = True
+            # psd.getLayer("LEA-LEB Frame Hue", blue_group).visible = True
+            # psd.getLayer("LEA-LEB Rules Color Balance", blue_group).visible = True
+            psd.getLayer("LEA-LEB Rules Brightness", blue_group).visible = True
+            psd.getLayer("LEA-LEB Rules Levels", blue_group).visible = True
+        elif border_color == 'white' and self.layout.scryfall['colors'] == ["Gold"]:
+            gold_group = psd.getLayerSet("Gold", "Nonland")
+            psd.getLayer("Left & Bottom Bevel Levels", gold_group).visible = False
         if "tombstone" in self.layout.frame_effects or "Flashback" in self.layout.keywords:  # TODO: Test the new "tombstone" condition. Is self.layout.frame_effects the right expression? Try a non-flashback card, like Genesis (JUD)
             unhide(("Tombstone", con.layers['TEXT_AND_ICONS']))
 
@@ -601,7 +629,7 @@ class AncientTemplate (NormalClassicTemplate):
             thicker_trim_stroke = "Trim - Thicker Outer Black Stroke (2px)"
             thickest_trim_stroke = "Trim - Thickest Outer Black Stroke (3px)"
             thicker_bevels_rules_box = "Rules Box - Inner Bevel - Enhance"
-            neutral_land_frame_color = "Neutral - Color (v2)"
+            neutral_land_frame_color = "Neutral - Color (v3)"
             pinlines: str = self.layout.pinlines
             print(f"{pinlines=}")
             is_dual = len(pinlines) == 2
