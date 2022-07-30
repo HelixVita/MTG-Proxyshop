@@ -129,12 +129,14 @@ class ProxyshopApp(App):
 		# ========== FelixVita code changes ============================================================================
 		from pathlib import Path
 		out_folder = "out"
-		out_folder = os.path.join("out", "cube")
+		out_folder = os.path.join("out", "cube", "jonas")
 		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
 
 		# FelixVita - Also get art from other location(s)
 		other_art_folders = [
 			# os.path.join(cwd, "art"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\downloads\\"),
+			os.path.join(cwd, "..\\MTG-Art-Downloader\\downloaded\\scryfall"),
 			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
 			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-forUpscaling"),
 			# os.path.join(cwd, "..\\xinntao\\Real-ESRGAN\\results-godkjent"),
@@ -148,7 +150,7 @@ class ProxyshopApp(App):
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-please-redo"),
 			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\0-scryfall-artcrops-do-not-touch"),
 			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\3-upscaled-discordbot"),
-			os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\4-autocropped"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\4-autocropped"),
 
 		]
 		# Iterate through art folders
@@ -172,8 +174,14 @@ class ProxyshopApp(App):
 		already_rendered_cards = []
 		for artdir in other_art_folders:
 			for subfolder in os.listdir(artdir):
-				already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
-		if not rerender_all: files = [_ for _ in files if Path(_).stem not in already_rendered_cards]
+				out_folder_contents = glob(os.path.join(cwd, out_folder, subfolder, "*"))
+				already_rendered_cards.extend([Path(_).stem.split(' (')[0].lower() for _ in out_folder_contents])
+				out_folder_subdirs = [_ for _ in out_folder_contents if Path(_).is_dir()]
+				for outsubdir in out_folder_subdirs:
+					outsubdir_contents = glob(os.path.join(outsubdir, "*"))
+					already_rendered_cards.extend([Path(_).stem.split(' (')[0].lower() for _ in outsubdir_contents])
+				# already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
+		if not rerender_all: files = [_ for _ in files if Path(_).stem.split(' (')[0].lower() not in already_rendered_cards]
 
 		# Print files to terminal
 		print("Final list of files for rendering:")
@@ -217,6 +225,7 @@ class ProxyshopApp(App):
 			# The template we'll use for this type
 			template = core.get_template(temps[card_type])
 			for card in cards:
+				# if card.pinlines == 'U' and card.type_line != 'Land':
 				# Load defaults and start thread
 				self.load_defaults()
 				console.update(f"[color=#59d461]---- {card.name} ----[/color]")
