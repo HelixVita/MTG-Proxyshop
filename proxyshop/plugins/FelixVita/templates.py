@@ -7,6 +7,7 @@ import proxyshop.templates as temp
 from proxyshop.constants import con
 from proxyshop.settings import cfg
 import proxyshop.helpers as psd
+import proxyshop.core as core
 import photoshop.api as ps
 app = ps.Application()
 
@@ -124,24 +125,26 @@ def unhide(psdpath: tuple, is_group=False):
     selection.visible = True
 
 
-def frame_expansion_symbol_customscale(layer, reference_layer, centered, scale_percent=100):
+def frame_expansion_symbol_customscale(layer, reference, anchor=ps.AnchorPosition.TopLeft, smallest=False, align_h=True, align_v=True, scale_percent=100):
     """
      * Scale a layer equally to the bounds of a reference layer, then centre the layer vertically and horizontally
      * within those bounds.
     """
-    layer_dimensions = psd.get_layer_dimensions(layer)
-    reference_dimensions = psd.get_layer_dimensions(reference_layer)
+    # Get layer and reference dimensions
+    layer_dim = psd.get_layer_dimensions(layer)
+    ref_dim = psd.get_layer_dimensions(reference)
 
     # Determine how much to scale the layer by such that it fits into the reference layer's bounds
-    scale_factor = scale_percent * min(reference_dimensions['width'] / layer_dimensions['width'], reference_dimensions['height'] / layer_dimensions['height'])
-    layer.resize(scale_factor, scale_factor, ps.AnchorPosition.MiddleRight)
+    if smallest: scale = scale_percent * min((ref_dim['width'] / layer_dim['width']), (ref_dim['height'] / layer_dim['height']))
+    else: scale = scale_percent * max((ref_dim['width'] / layer_dim['width']), (ref_dim['height'] / layer_dim['height']))
+    layer.resize(scale, scale, anchor)
 
-    psd.select_layer_pixels(reference_layer)
+    # Align the layer
+    psd.select_layer_bounds(reference)
     app.activeDocument.activeLayer = layer
+    if align_h: psd.align_horizontal()
+    if align_v: psd.align_vertical()
 
-    if centered: psd.align_horizontal()
-    psd.align_vertical()
-    psd.clear_selection()
 
 
 class RetroExpansionSymbolField (txt_layers.TextField):
@@ -300,7 +303,7 @@ class StarterTemplate (temp.BaseTemplate):
         # Hardcoded changes to certain cardnames containing unrenderable chars:
         cardname = str(self.layout.name)
         if setcode == "ARN" and cardname.upper().startswith("RING"):
-            cardname = "Ring of Ma ruf"
+            cardname = "Ring of Ma'ruf"
         elif setcode == "ICE" and cardname.upper().endswith("STROMGALD"):
             cardname = "Marton Stromgald"
 
@@ -317,60 +320,67 @@ class StarterTemplate (temp.BaseTemplate):
                 contents=cardname,
                 color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(name_selected),
                 reference=mana_cost
-            ),
-            txt_layers.ScaledTextField(
-                layer=type_line_selected,
-                contents=self.layout.type_line,
-                color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected),
-                reference=expansion_symbol
-            ),
+            )
         ])
-
-        # print(f"---- Inspect values before adding expansion symbol field --- {__class__=} {__file__=}")  # DEBUG
-        # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-        # print(f"{con.align_classic_quote}")  # DEBUG
-        # print(f"{con.font_rules_text}")  # DEBUG
-        # print(f"{self.layout.symbol=}")
-
         # Add expansion symbol field
-        if setcode in sets_without_set_symbol:
-            pass
-        elif setcode == "ALL":
-            # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
-            unhide(("Set Symbol - Alliances", con.layers['TEXT_AND_ICONS']))  # TODO: Test that this works
-        else:
-            self.tx_layers.extend([
-                RetroExpansionSymbolField(
-                    layer = expansion_symbol,
-                    # contents = self.layout.symbol,
-                    contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
-                    rarity = self.layout.rarity,
-                    reference = expansion_reference,
-                    is_pre_exodus = is_pre_exodus,
-                    has_hollow_set_symbol = has_hollow_set_symbol,
-                    setcode = setcode,
-                    background = self.layout.background
-                    )
-            ])
+        if not hasattr(self, "expansion_disabled"):
+            if setcode in sets_without_set_symbol:
+                pass
+            elif setcode == "ALL":
+                # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
+                unhide(("Set Symbol - Alliances", con.layers['TEXT_AND_ICONS']))  # TODO: Test that this works
+            else:
+                self.tx_layers.extend([  # TODO: Find out if this should be append or extend (in the core templates.py it's 'append')
+                    RetroExpansionSymbolField(
+                        layer = expansion_symbol,
+                        # contents = self.layout.symbol,
+                        contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                        rarity = self.layout.rarity,
+                        reference = expansion_reference,
+                        is_pre_exodus = is_pre_exodus,
+                        has_hollow_set_symbol = has_hollow_set_symbol,  # TODO: Remove this if it's not needed anymore
+                        setcode = setcode,
+                        background = self.layout.background
+                        )
+                ])
+            self.tx_layers.append(
+                txt_layers.ScaledTextField(
+                    layer=type_line_selected,
+                    contents=self.layout.type_line,
+                    reference=expansion_symbol,
+                    color=psd.get_rgb(*gray) if setcode in pre_legends_sets else psd.get_text_layer_color(type_line_selected)
+                )
+            )
+
+    @staticmethod
+    def enable_hollow_crown(crown, pinlines, shadows=None):
+        """
+        Enable the hollow legendary crown for this card given layer groups for the crown and pinlines.
+        """
+        if not shadows: shadows = psd.getLayer(con.layers['SHADOWS'])
+        psd.enable_mask(crown)
+        psd.enable_mask(pinlines)
+        psd.enable_mask(shadows)
+        psd.getLayer(con.layers['HOLLOW_CROWN_SHADOW']).visible = True
 
 class NormalClassicTemplate (StarterTemplate):
     """
-     * A template for 7th Edition frame. Each frame is flattened into its own singular layer.
+    A template for 7th Edition frame. Each frame is flattened into its own singular layer.
     """
-    def template_file_name(self): return "normal-classic"
-    def template_suffix(self): return "Classic"
+    template_file_name = "normal-classic.psd"
+    template_suffix = "Classic"
 
     def __init__(self, layout):
         # Collector info
         cfg.real_collector = True  # FelixVita
-        cfg.real_collector = True  # FelixVita
-        if layout.background == con.layers['COLORLESS']: layout.background = con.layers['ARTIFACT']
         super().__init__(layout)
-        self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
 
-        # Basic text
-        text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+    def basic_text_layers(self, text_and_icons):
         super().basic_text_layers(text_and_icons)
+
+        # Hybrid mana too big
+        if len(self.layout.background) == 2:
+            psd.getLayer(con.layers['MANA_COST'], text_and_icons).translate(0, -5)
 
         # Text reference and rules text
         if self.is_land: reference_layer = psd.getLayer(con.layers['TEXTBOX_REFERENCE_LAND'], text_and_icons)
@@ -391,7 +401,7 @@ class NormalClassicTemplate (StarterTemplate):
                 flavor=self.layout.flavor_text,
                 centered=is_centered,
                 reference=reference_layer,
-                fix_length=False
+                divider = psd.getLayer(con.layers['DIVIDER'], text_and_icons)
             )
         )
 
@@ -415,17 +425,23 @@ class NormalClassicTemplate (StarterTemplate):
             )
         else: power_toughness.visible = False
 
+    def enable_frame_layers(self):
+
+        # Simple one image background, Land or Nonland
+        if self.is_land: psd.getLayer(self.layout.pinlines, con.layers['LAND']).visible = True
+        else: psd.getLayer(self.layout.background, con.layers['NONLAND']).visible = True
+
+        # Basic text layers
+        text_and_icons = psd.getLayerSet(con.layers['TEXT_AND_ICONS'])
+        self.basic_text_layers(text_and_icons)
 
 class AncientTemplate (NormalClassicTemplate):
     """
      * Notes about my template here
      * Created by FelixVita
     """
-    def template_file_name (self):
-        return "FelixVita/ancient"
-
-    def template_suffix (self):
-        return "Ancient"
+    template_file_name = "FelixVita/ancient.psd"
+    template_suffix = "Ancient"
 
     # OPTIONAL
     def __init__ (self, layout):
@@ -437,42 +453,16 @@ class AncientTemplate (NormalClassicTemplate):
             con.align_classic_quote = True
             con.font_rules_text = "MPlantin-Bold"
         else:
-            # print(f"\n\n=========== {layout.name=} {layout.set=} =============")  # DEBUG
-            # print(f"{__class__=} {__file__=}")  # DEBUG")
-            # print(f"===== Variables to print =====")  # DEBUG
-            # print("con.set_symbols['ICE']")  # DEBUG -- (The one ending in 19 should not be used for ICE cards)
-            # print("con.align_classic_quote")  # DEBUG
-            # print("con.font_rules_text")  # DEBUG
-            # print("(other)")  # DEBUG
-            # print(f"===== Previous/initial values =====")  # DEBUG
-            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            # print(f"{con.align_classic_quote}")  # DEBUG
-            # print(f"{con.font_rules_text}")  # DEBUG
-            # print(f"===== Conditions triggered =====")  # DEBUG
             # Use alternate expansion symbol for ICE
             if layout.set.upper() == "ICE":
                 con.set_symbols["ICE"] = ""  # Use ss-ice2 (instead of ss-ice)
                 # TODO: Fix this. Currently broken and using a lazy workaround. Search #LAZYFIX-ICE
-                # print(1)
             # Right-justify citations in flavor text for all sets starting with Mirage
             if layout.set.upper() not in pre_mirage_sets:
                 con.align_classic_quote = True
-                # print(2)
             # Use bold rules text for the 3 Portal sets + S99:
             if layout.set.upper() in ["POR", "P02", "PTK", "S99"]:
                 con.font_rules_text = "MPlantin-Bold"
-                # print(3)
-            # print(f"===== EXPECTED new values ====")  # DEBUG
-            # expected_ice_symb = repr('') if layout.set.upper() == "ICE" else repr('')  # DEBUG
-            # expected_align_bool = True if layout.set.upper() not in pre_mirage_sets else False  # DEBUG
-            # expected_rules_font = "MPlantin-Bold" if layout.set.upper() in ["POR", "P02", "PTK", "S99"] else "MPlantin"  # DEBUG
-            # print(f"{expected_ice_symb}")  # DEBUG
-            # print(f"{expected_align_bool}")  # DEBUG
-            # print(f"{expected_rules_font}")  # DEBUG
-            # print(f"===== ACTUAL new values ====")  # DEBUG
-            # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
-            # print(f"{con.align_classic_quote}")  # DEBUG
-            # print(f"{con.font_rules_text}")  # DEBUG
 
         super().__init__(layout)
 
