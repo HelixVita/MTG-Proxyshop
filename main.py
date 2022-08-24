@@ -120,13 +120,14 @@ class ProxyshopApp(App):
 		types = {}
 		lthr = []
 		self.assigned_layouts = {}
-		folder = os.path.join(cwd, "art")
-		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
-		for ext in extensions:
-			files.extend(glob(os.path.join(folder, ext)))
-
 
 		# ========== FelixVita code changes ============================================================================
+
+		# folder = os.path.join(cwd, "art")
+		# extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
+		# for ext in extensions:
+		# 	files.extend(glob(os.path.join(folder, ext)))
+
 		from pathlib import Path
 		out_folder = "out"
 		out_folder = os.path.join("out", "cube", "jonas")
@@ -136,11 +137,12 @@ class ProxyshopApp(App):
 		other_art_folders = [
 			# os.path.join(cwd, "art"),
 			# os.path.join(cwd, "..\\MTG-Art-Downloader\\downloads\\"),
-			os.path.join(cwd, "..\\MTG-Art-Downloader\\downloaded\\scryfall"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\downloaded\\scryfall"),
 			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
 			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-forUpscaling"),
 			# os.path.join(cwd, "..\\xinntao\\Real-ESRGAN\\results-godkjent"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
+			os.path.join(cwd, "..\\MTG-Art-Downloader\\old\\downloaded\\felix-16-apr-2022-scryfall\\test-44"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
 			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-cube-16-may-2022-scryfall"),

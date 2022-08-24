@@ -224,7 +224,7 @@ class BaseTemplate:
         original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
         # Save file in a subfolder in out? (like "out/mySubfolder")
         out_subfolder_enabled = True
-        out_subfolder = "cube/jonas"
+        out_subfolder = "ancientOverhaul/test-44"
         # Use a template name suffix?
         suffix_enabled = False
         suffix = self.template_suffix()
