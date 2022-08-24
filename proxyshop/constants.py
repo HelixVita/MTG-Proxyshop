@@ -436,6 +436,11 @@ class Constants:
 
     def reload(self):
         self.load_values()
+        # print(f"---- Inspect vars directly after executing 'reload(self)' --- {__file__=}")  # DEBUG
+        # print(f"{repr(con.set_symbols['ICE'])}")  # DEBUG
+        # print(f"{con.align_classic_quote}")  # DEBUG
+        # print(f"{con.font_rules_text}")  # DEBUG
+
 
     def update_version_tracker(self):
         """

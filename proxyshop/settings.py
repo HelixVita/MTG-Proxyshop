@@ -86,3 +86,6 @@ class Config:
 
 # Global settings object
 cfg = Config()
+
+# print(f"---- Inspect cfg.symbol_char directly after calling 'cfg = Config()' {__file__=}")  # DEBUG
+# print(f"{repr(cfg.symbol_char)}")

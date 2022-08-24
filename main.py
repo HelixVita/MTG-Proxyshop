@@ -120,9 +120,81 @@ class ProxyshopApp(App):
 
 		# Select all images in art folder
 		folder = os.path.join(cwd, "art")
+		failed = []
+		files = []
+		cards = []
+		types = {}
+		lthr = []
+		self.assigned_layouts = {}
+
+		# ========== FelixVita code changes ============================================================================
+		# extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
+		# for ext in extensions:
+		# 	files.extend(glob(os.path.join(folder, ext)))
+
+		from pathlib import Path
+		out_folder = "out"
+		out_folder = os.path.join("out", "cube", "jonas")
 		extensions = ["*.png", "*.jpg", "*.tif", "*.jpeg"]
-		for ext in extensions:
-			files.extend(glob(os.path.join(folder, ext)))
+
+		# FelixVita - Also get art from other location(s)
+		other_art_folders = [
+			# os.path.join(cwd, "art"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\downloads\\"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\downloaded\\scryfall"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\xinntao\\Real-ESRGAN\\results-godkjent"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-16-apr-2022-scryfall"),
+			os.path.join(cwd, "..\\MTG-Art-Downloader\\old\\downloaded\\felix-16-apr-2022-scryfall\\test-44"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-30-apr-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-13-may-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\downloaded\\felix-cube-16-may-2022-scryfall"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-godkjent_noUpscale"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\MTG-Art-Downloader\\d-forUpscaling"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-godkjent"),
+			# os.path.join(cwd, "..\\..\\felixvita-personal\\git\\xinntao\\Real-ESRGAN\\results-please-redo"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\0-scryfall-artcrops-do-not-touch"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\3-upscaled-discordbot"),
+			# os.path.join(cwd, "C:\\git-helixvita\\MTG-Art-Downloader\\downloaded-premodern\\4-autocropped"),
+
+		]
+		# Iterate through art folders
+		for artdir in other_art_folders:
+			subfolders = os.listdir(artdir)
+			# Create subfolders in out_folder if they don't exist
+			for subfolder in subfolders:
+				Path(os.path.join(cwd, out_folder, subfolder)).mkdir(mode=511, parents=True, exist_ok=True)
+			# In each art folder, add all art files to the list of files
+			for ext in extensions:
+				files.extend(glob(os.path.join(artdir,"**", ext)))
+
+		# FelixVita - Subfolders to skip
+		numbers = ''  # Example: To skip subfolders starting with '1' and '2', let numbers = '12'. Or, to not skip any, let numbers = ''.
+		if numbers:
+			files = [_ for _ in files if not str(Path(_).parent.relative_to(Path(_).parent.parent)).startswith(tuple(numbers))]
+
+		# FelixVita - Don't re-render already rendered cards
+		rerender_all = False
+		# already_rendered_cards.extend([Path(_).name for _ in glob(os.path.join(cwd,"out", "**\*"))])
+		already_rendered_cards = []
+		for artdir in other_art_folders:
+			for subfolder in os.listdir(artdir):
+				out_folder_contents = glob(os.path.join(cwd, out_folder, subfolder, "*"))
+				already_rendered_cards.extend([Path(_).stem.split(' (')[0].lower() for _ in out_folder_contents])
+				out_folder_subdirs = [_ for _ in out_folder_contents if Path(_).is_dir()]
+				for outsubdir in out_folder_subdirs:
+					outsubdir_contents = glob(os.path.join(outsubdir, "*"))
+					already_rendered_cards.extend([Path(_).stem.split(' (')[0].lower() for _ in outsubdir_contents])
+				# already_rendered_cards.extend([Path(_).stem for _ in glob(os.path.join(cwd, out_folder, subfolder, "*"))])
+		if not rerender_all: files = [_ for _ in files if Path(_).stem.split(' (')[0].lower() not in already_rendered_cards]
+
+		# Print files to terminal
+		print("Final list of files for rendering:")
+		for _ in files:
+			print(_)
+		# ======= End of FelixVita code changes ===========================================================================
+
 
 		# Is the list empty?
 		if len(files) == 0:
@@ -164,6 +236,7 @@ class ProxyshopApp(App):
 			# The template we'll use for this type
 			template = core.get_template(temps[card_type])
 			for card in cards:
+				# if card.pinlines == 'U' and card.type_line != 'Land':
 				# Load defaults and start thread
 				self.load_defaults()
 				console.update(f"[color=#59d461]---- {card.name} ----[/color]")

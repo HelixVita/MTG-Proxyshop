@@ -4,6 +4,7 @@ CORE TEMPLATES
 import os
 from get_image_size import get_image_size
 from proxyshop.gui import console_handler as console
+from pathlib import Path
 import proxyshop.text_layers as txt_layers
 import proxyshop.format_text as ft
 from proxyshop.constants import con
@@ -249,6 +250,25 @@ class BaseTemplate:
 
         # Format file name
         file_name = self.get_file_name()
+
+		# ========== FelixVita code changes ============================================================================
+        # Save render using same name as the art file
+        original_file_path = Path(self.layout.file)
+        original_file_parentdir = original_file_path.parent.relative_to(original_file_path.parent.parent)
+        # Save file in a subfolder in out? (like "out/mySubfolder")
+        out_subfolder_enabled = True
+        out_subfolder = "ancientOverhaul/test-44"
+        # Use a template name suffix?
+        suffix_enabled = False
+        suffix = self.template_suffix()
+        file_name_suffix = f" ({suffix} Template)" if suffix and suffix_enabled else ""
+        out_subfolder = out_subfolder if out_subfolder_enabled else ""
+        file_name = f"{out_subfolder}/{original_file_parentdir}/{original_file_path.stem}{file_name_suffix}"
+        # Use a reprint suffix?
+        reprint_suffix_enabled = True
+        reprint_suffix = " [REPRINT]" if self.layout.scryfall['reprint'] else ""
+        if reprint_suffix_enabled: file_name += reprint_suffix
+		# ======= End of FelixVita code changes ===========================================================================
 
         # Manual edit step?
         if cfg.exit_early and not cfg.dev_mode:

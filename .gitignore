@@ -151,7 +151,7 @@ cython_debug/
 .idea/
 
 # Specific to this project
-/art
+/art*
 /out
 /tmp
 /templates
