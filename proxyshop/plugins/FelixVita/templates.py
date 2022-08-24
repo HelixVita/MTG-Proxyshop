@@ -147,7 +147,7 @@ def frame_expansion_symbol_customscale(layer, reference, anchor=ps.AnchorPositio
 
 
 
-class RetroExpansionSymbolField (txt_layers.TextField):
+class RetroExpansionSymbolField (txt_layers.TextField): # asdasfasf
     """
      * Created by FelixVita
      * A TextField which represents a card's expansion symbol.
