@@ -330,19 +330,27 @@ class StarterTemplate (temp.BaseTemplate):
                 # Unhide the shaded-in Alliances set symbol icon (rather than using the ExpansionSymbol class to generate it)
                 unhide(("Set Symbol - Alliances", con.layers['TEXT_AND_ICONS']))  # TODO: Test that this works
             else:
-                self.tx_layers.extend([  # TODO: Find out if this should be append or extend (in the core templates.py it's 'append')
-                    RetroExpansionSymbolField(
-                        layer = expansion_symbol,
-                        # contents = self.layout.symbol,
-                        contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
-                        rarity = self.layout.rarity,
-                        reference = expansion_reference,
-                        is_pre_exodus = is_pre_exodus,
-                        has_hollow_set_symbol = has_hollow_set_symbol,  # TODO: Remove this if it's not needed anymore
-                        setcode = setcode,
-                        background = self.layout.background
-                        )
-                ])
+                # self.tx_layers.extend([  # TODO: Find out if this should be append or extend (in the core templates.py it's 'append')
+                #     RetroExpansionSymbolField(
+                #         layer = expansion_symbol,
+                #         # contents = self.layout.symbol,
+                #         contents =  "" if setcode == "ICE" else self.layout.symbol,  # Lazy fix to a weird problem I can't figure out. #LAZYFIX-ICE
+                #         rarity = self.layout.rarity,
+                #         reference = expansion_reference,
+                #         is_pre_exodus = is_pre_exodus,
+                #         has_hollow_set_symbol = has_hollow_set_symbol,  # TODO: Remove this if it's not needed anymore
+                #         setcode = setcode,
+                #         background = self.layout.background
+                #         )
+                # ])
+                self.tx_layers.append(
+                txt_layers.ExpansionSymbolField(
+                    layer = expansion_symbol,
+                    contents = self.layout.symbol,
+                    rarity = self.layout.rarity,
+                    reference = expansion_reference
+                )
+            )
             self.tx_layers.append(
                 txt_layers.ScaledTextField(
                     layer=type_line_selected,
