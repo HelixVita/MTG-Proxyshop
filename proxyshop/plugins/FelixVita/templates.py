@@ -611,7 +611,7 @@ class AncientTemplate (NormalClassicTemplate):
             gold_group = psd.getLayerSet("Gold", "Nonland")
             psd.getLayer("Left & Bottom Bevel Levels", gold_group).visible = False
         if "tombstone" in self.layout.frame_effects or "Flashback" in self.layout.keywords:  # TODO: Test the new "tombstone" condition. Is self.layout.frame_effects the right expression? Try a non-flashback card, like Genesis (JUD)
-            unhide(("Tombstone", con.layers['TEXT_AND_ICONS']))
+            unhide(("Tombstone", con.layers['TEXT_AND_ICONS']), is_group=True)
 
          # super().enable_frame_layers()
 
