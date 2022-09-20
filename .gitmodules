@@ -1,0 +1,3 @@
+[submodule "proxyshop/plugins/FelixVita-Proxyshop-Plugins"]
+	path = proxyshop/plugins/FelixVita-Proxyshop-Plugins
+	url = https://github.com/HelixVita/FelixVita-Proxyshop-Plugins.git
