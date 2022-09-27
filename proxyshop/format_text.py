@@ -593,6 +593,7 @@ def scale_text_right_overlap(layer, reference) -> None:
     """
     # Ensure a proper reference layer
     contents = None
+    if not reference: reference = psd.getLayer('Expansion Symbol copy', con.layers['TEXT_AND_ICONS'])  # FelixVita Temporary Fix # TODO: Remove this line when Investi fixes https://github.com/MrTeferi/MTG-Proxyshop/issues/28
     if not reference: return
     if reference.kind is ps.LayerKind.TextLayer:
         if reference.textItem.contents in ("", " "):
