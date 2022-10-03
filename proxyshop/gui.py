@@ -363,7 +363,7 @@ def get_font(name: str, default: str = "Roboto"):
     """
     basename = name[0:-4]
     try:
-        LabelBase.register(name=basename, fn_regular=name)
+        LabelBase.register(name=basename, fn_regular=name) #@IgnoreException
         return basename
     except OSError:
         try:

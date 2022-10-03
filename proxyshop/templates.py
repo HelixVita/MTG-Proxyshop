@@ -299,7 +299,7 @@ class StarterTemplate (BaseTemplate):
         name = psd.getLayer(con.layers['NAME'], text_and_icons)
         name_selected = name
         try:
-            if self.name_shifted:
+            if self.name_shifted: #@IgnoreException
                 name_selected = psd.getLayer(con.layers['NAME_SHIFT'], text_and_icons)
                 name.visible, name_selected.visible = False, True
         except AttributeError: pass
@@ -309,7 +309,7 @@ class StarterTemplate (BaseTemplate):
         type_line_selected = type_line
         try:
             # Handle error if type line shift / color indicator doesn't exist
-            if self.type_line_shifted:
+            if self.type_line_shifted: #@IgnoreException
                 type_line_selected = psd.getLayer(con.layers['TYPE_LINE_SHIFT'], text_and_icons)
                 psd.getLayer(self.layout.pinlines, con.layers['COLOR_INDICATOR']).visible = True
                 type_line.visible, type_line_selected.visible = False, True

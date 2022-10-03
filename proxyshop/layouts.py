@@ -210,7 +210,7 @@ class NormalLayout (BaseLayout):
         except KeyError: self.power = None
         try: self.toughness = self.scryfall['toughness']
         except KeyError: self.toughness = None
-        try: self.color_indicator = self.scryfall['color_indicator']
+        try: self.color_indicator = self.scryfall['color_indicator'] #@IgnoreException
         except KeyError: self.color_indicator = None
         try: self.scryfall_scan = self.scryfall['image_uris']['large']
         except KeyError: self.scryfall_scan = None

@@ -108,7 +108,7 @@ def get_templates():
 
             # Loop through keys in plugin json
             try:
-                for key, val in j.items():
+                for key, val in j.items(): #@IgnoreException
                     # Add to existing templates
                     for k, v in val.items():
                         main_json[key][k] = [f"proxyshop\\plugins\\{Path(folder).stem}\\templates.py", v]
