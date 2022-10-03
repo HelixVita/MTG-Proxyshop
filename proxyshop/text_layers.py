@@ -50,7 +50,7 @@ class ScaledTextField (TextField):
         self.reference_name = self.reference.name
 
     def execute(self):
-        try: self.reference.name
+        try: self.reference.name #@IgnoreException
         except Exception:
             self.reference = psd.getLayer(self.reference_name, self.reference_parent)
 

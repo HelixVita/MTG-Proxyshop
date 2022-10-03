@@ -70,7 +70,7 @@ class BaseTemplate:
             collector_layer.visible = True
             psd.getLayer("Artist", self.legal_layer).visible = False
             psd.getLayer("Set", self.legal_layer).visible = False
-            try: psd.getLayer("Pen", self.legal_layer).visible = False
+            try: psd.getLayer("Pen", self.legal_layer).visible = False #@IgnoreException
             except AttributeError: pass
 
             # Get the collector layers
@@ -377,7 +377,7 @@ class NormalTemplate (StarterTemplate):
             else: self.art_reference = psd.getLayer(con.layers['ART_FRAME'])
 
         # Name/typeline shifted?
-        try: self.name_shifted = bool(self.layout.transform_icon)
+        try: self.name_shifted = bool(self.layout.transform_icon) #@IgnoreException
         except AttributeError: self.name_shifted = False
         try: self.type_line_shifted = bool(self.layout.color_indicator)
         except AttributeError: self.type_line_shifted = False

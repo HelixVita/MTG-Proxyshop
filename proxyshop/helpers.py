@@ -243,7 +243,7 @@ def get_text_layer_color(layer):
     """
     try:
         if layer.kind == ps.LayerKind.TextLayer:
-            return layer.textItem.color
+            return layer.textItem.color #@IgnoreException
         else: return rgb_black()
     except _ctypes.COMError: return rgb_black()
 
