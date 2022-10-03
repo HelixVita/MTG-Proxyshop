@@ -204,11 +204,11 @@ class NormalLayout (BaseLayout):
         self.oracle_text_raw = self.scryfall['oracle_text']
 
         # Optional vars
-        try: self.flavor_text = self.scryfall['flavor_text']
+        try: self.flavor_text = self.scryfall['flavor_text']  #@IgnoreException
         except KeyError: self.flavor_text = ""
-        try: self.power = self.scryfall['power']
+        try: self.power = self.scryfall['power'] #@IgnoreException
         except KeyError: self.power = None
-        try: self.toughness = self.scryfall['toughness']
+        try: self.toughness = self.scryfall['toughness'] #@IgnoreException
         except KeyError: self.toughness = None
         try: self.color_indicator = self.scryfall['color_indicator'] #@IgnoreException
         except KeyError: self.color_indicator = None
