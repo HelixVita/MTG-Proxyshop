@@ -126,7 +126,7 @@ class BaseTemplate:
             if height > (width * 1.2):
                 try:
                     # See if this template has a full art reference
-                    fa_frame = psd.getLayer(con.layers['FULL_ART_FRAME'])
+                    fa_frame = psd.getLayer(con.layers['FULL_ART_FRAME']) #@IgnoreException
                     if fa_frame: self.art_reference = fa_frame
                 except Exception as e: console.log_exception(e)
         if cfg.dev_mode:

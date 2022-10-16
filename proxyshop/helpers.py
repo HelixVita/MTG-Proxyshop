@@ -72,7 +72,7 @@ def getLayer(name: str, group=None):
         # Else, assume layerSet object given
 
         # Find our layer
-        for layer in layer_set.layers:
+        for layer in layer_set.layers: #@IgnoreException
             if layer.name == name:
                 return layer
     except: return
