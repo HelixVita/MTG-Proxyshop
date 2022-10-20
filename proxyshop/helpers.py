@@ -57,7 +57,7 @@ def getLayer(name: str, group=None):
                 if layer.name == name: return layer
         elif isinstance(group, str):
             # LayerSet name given
-            layer_set = app.activeDocument.layerSets.getByName(group)
+            layer_set = app.activeDocument.layerSets.getByName(group)  #@IgnoreException
         elif isinstance(group, (tuple, list)):
             # List of layerSet names/objects given
             for g in group:
