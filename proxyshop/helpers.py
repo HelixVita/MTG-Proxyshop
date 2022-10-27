@@ -557,7 +557,7 @@ def paste_file(layer, file, action=None, action_args=None):
     # Select the correct layer, then load the file
     prev_active_layer = app.activeDocument.activeLayer
     app.activeDocument.activeLayer = layer
-    app.load(file)
+    app.load(file)  #@IgnoreException
 
     # Optionally run action on art before importing it
     if action:
@@ -580,7 +580,7 @@ def paste_file_into_new_layer(file):
     Returns the new layer.
     """
     new_layer = create_new_layer("New Layer")
-    paste_file(new_layer, file)
+    paste_file(new_layer, file)  #@IgnoreException
     return new_layer
 
 
